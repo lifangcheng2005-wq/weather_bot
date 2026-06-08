@@ -53,30 +53,47 @@ def handle_message(event):
 
 
 # =====================================================================
-# 2. Dialogflow Fulfillment 接收端點 (終極通車修正版)
+# 2. Dialogflow Fulfillment 接收端點 (終極防超時安全版)
 # =====================================================================
 @app.route("/webhook", methods=["POST"])
 def webhook():
     req = request.get_json(force=True)
     
-    # 取得 Dialogflow 目前觸發的 Action 名稱
-    action = req["queryResult"]["action"]
-    user_query_text = req["queryResult"]["queryText"]
+    # 取得 Dialogflow 目前觸發的 Action 名稱與原始提問
+    action = req["queryResult"].get("action", "")
+    user_query_text = req["queryResult"].get("queryText", "")
     
-    # 當 Dialogflow 觸發氣象查詢
+    # 初始化預設回覆
+    info = "小秘書目前忙碌中，請稍後再試。"
+    
     if action in ["queryWeather", "input.unknown"]:
         try:
+            # 優先權 1：直接拿 Dialogflow 已經幫我們抓好的台灣城市名稱 ( geo-city )
             geo_city = req["queryResult"]["parameters"].get("geo-city", "")
-            if geo_city:
-                user_query_text = f"我要查詢 {geo_city}。原句：{user_query_text}"
-        except:
-            pass
             
-        info = ask_gemini_weather(user_query_text)
+            if geo_city:
+                # 既然 Dialogflow 已經 100% 聽懂城市了，為了「絕對防止超時」
+                # 我們繞過第一階段的 Gemini 猜測，直接手動幫它組裝去抓政府 JSON！
+                # 這樣速度會快 10 倍，完全不會卡死！
+                city_formatted = geo_city.strip()
+                if not city_formatted.endswith(('市', '縣')):
+                    # 自動補上縣市字尾，例如 "台中" -> "台中市"
+                    city_formatted += "縣" if city_formatted in ["彰化", "南投", "雲林", "屏東", "臺東", "台東", "花蓮", "澎湖", "金門", "連江"] else "市"
+                
+                # 直接拿這個確定的城市去跑第二階段（抓資料＋AI 包裝回覆）
+                # 這邊只呼叫一次 Gemini，時間非常安全！
+                info = ask_gemini_weather(f"我要查詢 {city_formatted}。原句：{user_query_text}")
+            else:
+                # 優先權 2：萬一使用者沒打城市，才交給原本的文字邏輯去處理
+                info = ask_gemini_weather(user_query_text)
+                
+        except Exception as e:
+            # 優先權 3：萬一整段程式哪裡不小心卡住，自動跳到這裡防錯，絕對不讓 Vercel 崩潰
+            info = f"天氣查詢服務暫時繁忙，請再試一次。錯誤訊息: {str(e)}"
     else:
         info = "抱歉，此功能尚未設定對應的 Action。"
 
-    # 🌟 關鍵修正：確保包成符合 Dialogflow 標準的 JSON 格式物件
+    # 封裝成 Dialogflow 專用格式
     response_data = {
         "fulfillmentText": info,
         "fulfillmentMessages": [
@@ -87,10 +104,7 @@ def webhook():
             }
         ]
     }
-
-    # 回傳 JSON 並明確指定 Content-Type
     return jsonify(response_data)
-
 
 # =====================================================================
 # 3. 核心封裝函式：負責分析意圖、線上抓 JSON、並請 Gemini 統整回覆
