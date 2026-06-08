@@ -153,7 +153,7 @@ def get_warm_reminder(data, query_type):
         elif "不健康" in aqi_status or "對敏感族群" in aqi_status:
             reminders.append(random.choice(["今天窗外空氣有點『有毒』！口罩快拉好，保護好妳高貴的肺！⚠️", "空氣品質正在鬧脾氣！過敏星人沒事多待在室內修仙吧！🔮"]))
         else:
-            reminders.append("今天的空氣乾淨到像在清境農場！趕快大力吸三口，免費的奢華空氣不吸白不白～🍃")
+            reminders.append("今天的空氣乾淨到像在清境農場！趕快大力吸三口，免費的奢華空氣不吸白不吸～🍃")
 
     if query_type in ['all', 'uv']:
         if uvi_val >= 8:
@@ -166,7 +166,7 @@ def get_warm_reminder(data, query_type):
     return " \n".join(reminders)
 
 
-# --- 6. 🛠️ 視覺重構：大字體單頁說明書 (修復官方平台排版，文字絕不擠壓) ---
+# --- 6. 🛠️ 一頁式說明書 (原格式完美還原 + 獨立拉寬外連按鈕) ---
 
 def generate_guide_card():
     return {
@@ -215,30 +215,27 @@ def generate_guide_card():
               {"type": "text", "text": "點擊該圖示，推播只包防曬乳、抗陽指標的【獨立防曬卡】。", "size": "sm", "color": "#555555", "wrap": True}
           ]},
 
-          # 🛠️ 項目 5 重構亮點：改用 vertical 橫向延展排版，字體 100% 完整呈現、不擠壓
-          {"type": "box", "layout": "vertical", "spacing": "xs", "contents": [
-              {"type": "box", "layout": "horizontal", "contents": [
-                  {"type": "box", "layout": "vertical", "backgroundColor": "#457b9d", "cornerRadius": "md", "paddingAll": "xs", "width": "110px", "contents": [
-                      {"type": "text", "text": "🌐 官方連結欄", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
-                  ]},
-                  {"type": "text", "text": " 點擊選單右側或下方連結：", "size": "sm", "color": "#444444", "weight": "bold", "gravity": "center"}
+          # 🔄 完美還原：原汁原味恢復成妳最愛的左右對稱排版格式
+          {"type": "box", "layout": "horizontal", "spacing": "md", "contents": [
+              {"type": "box", "layout": "vertical", "backgroundColor": "#457b9d", "cornerRadius": "md", "paddingAll": "xs", "width": "90px", "contents": [
+                  {"type": "text", "text": "🔗 官方平台", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
               ]},
-              {"type": "text", "text": "可一鍵直接連線至【中央氣象署】與【環境部全球資訊網】觀看政府第一手權威原始數據。", "size": "sm", "color": "#555555", "wrap": True, "margin": "sm"}
+              {"type": "text", "text": "點擊選單右側按鈕，或下方快捷鍵，可直接連線至【中央氣象署】與【環境部全球資訊網】觀看一手資料。", "size": "sm", "color": "#555555", "wrap": True}
           ]},
           
           {"type": "separator", "margin": "md"},
           
-          # 🔗 外部網頁快速外連連結按鈕（寬度優化）
+          # 🚀 重大優化：將連結按鈕由左右並排改為上下垂直放置，給予 100% 寬度，字體絕對超完整、看得極度清楚！
           {
-            "type": "box", "layout": "horizontal", "spacing": "md", "margin": "sm",
+            "type": "box", "layout": "vertical", "spacing": "sm", "margin": "sm",
             "contents": [
               {
                 "type": "button", "style": "secondary", "height": "sm", "color": "#457b9d",
-                "action": {"type": "uri", "label": "🌤️ 中央氣象署", "uri": "https://www.cwa.gov.tw/"}
+                "action": {"type": "uri", "label": "🌤️ 開啟：交通部中央氣象署全球資訊網", "uri": "https://www.cwa.gov.tw/"}
               },
               {
                 "type": "button", "style": "secondary", "height": "sm", "color": "#2a9d8f",
-                "action": {"type": "uri", "label": "🍃 環境部官網", "uri": "https://www.moenv.gov.tw/"}
+                "action": {"type": "uri", "label": "🍃 開啟：中華民國環境部全球資訊網", "uri": "https://www.moenv.gov.tw/"}
               }
             ]
           },
@@ -443,7 +440,7 @@ def handle_text_message(event):
     elif any(k in user_input_lower for k in ["天氣", "氣溫", "溫度", "降雨", "今天天氣如何啊", "幾度"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
             set_user_state(user_id, "weather")
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(例如：台中、宜蘭、屏東)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(example: 台中、宜蘭、屏東)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
             return
             
     elif any(k in user_input_lower for k in ["空氣", "空氣品質", "aqi", "幫我看現在空氣品質好不好", "pm25"]):
