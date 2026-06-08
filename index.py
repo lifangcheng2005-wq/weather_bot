@@ -15,21 +15,54 @@ LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
 MOENV_API_KEY = os.environ.get("MOENV_API_KEY")
 CWA_API_KEY = os.environ.get("CWA_API_KEY")
+FIREBASE_DB_URL = os.environ.get("FIREBASE_DB_URL")  # Firebase 資料庫網址
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
-# --- 2. 記憶體快取設計 ---
+# --- 2. 記憶體快取設計（儲存政府API數據） ---
 cache = {
     "data": None,
     "last_updated": 0
 }
-CACHE_DURATION = 1200  
+CACHE_DURATION = 1200  # 快取 20 分鐘
 
 with open("city_mapping.json", "r", encoding="utf-8") as f:
     CITY_MAPPING = json.load(f)
 
-# --- 3. 核心資料撈取與 JSON 整合函式 ---
+# --- 3. Firebase 狀態讀寫函式庫（過橋抽河、秒失憶核心） ---
+def get_user_state(user_id):
+    """從 Firebase 讀取該用戶目前的查詢狀態"""
+    if not FIREBASE_DB_URL: return None
+    try:
+        url = f"{FIREBASE_DB_URL.rstrip('/')}/users/{user_id}.json"
+        res = requests.get(url, timeout=5).json()
+        return res if res else {}
+    except Exception as e:
+        print(f"❌ Firebase 讀取異常: {e}")
+        return None
+
+def set_user_state(user_id, query_type):
+    """將用戶目前的查詢類別存入 Firebase"""
+    if not FIREBASE_DB_URL: return
+    try:
+        url = f"{FIREBASE_DB_URL.rstrip('/')}/users/{user_id}.json"
+        data = {"query_type": query_type, "timestamp": time.time()}
+        requests.put(url, json=data, timeout=5)
+    except Exception as e:
+        print(f"❌ Firebase 寫入異常: {e}")
+
+def clear_user_state(user_id):
+    """清空用戶目前的 Firebase 記憶狀態 (重置)"""
+    if not FIREBASE_DB_URL: return
+    try:
+        url = f"{FIREBASE_DB_URL.rstrip('/')}/users/{user_id}.json"
+        requests.delete(url, timeout=5)
+    except Exception as e:
+        print(f"❌ Firebase 刪除異常: {e}")
+
+
+# --- 4. 核心資料撈取與 JSON 整合函式 ---
 def fetch_all_weather_data():
     current_time = time.time()
     if cache["data"] and (current_time - cache["last_updated"] < CACHE_DURATION):
@@ -38,6 +71,7 @@ def fetch_all_weather_data():
     print("⚡ 正在向政府 API 更新全台縣市 JSON 資料...")
     integrated_data = {}
 
+    # A. 撈取氣象署全台天氣預報 JSON
     try:
         cwa_url = f"https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization={CWA_API_KEY}&format=JSON"
         cwa_res = requests.get(cwa_url, timeout=10).json()
@@ -56,6 +90,7 @@ def fetch_all_weather_data():
     except Exception as e:
         print(f"❌ 氣象署 API 異常: {e}")
 
+    # B. 撈取環境部全台 AQI JSON
     try:
         aqi_url = f"https://data.moenv.gov.tw/api/v2/aqx_p_43?api_key={MOENV_API_KEY}&format=json"
         aqi_res = requests.get(aqi_url, timeout=10).json()
@@ -71,6 +106,7 @@ def fetch_all_weather_data():
     except Exception as e:
         print(f"❌ 環境部 AQI API 異常: {e}")
 
+    # C. 撈取環境部全台 紫外線 UVI JSON
     try:
         uv_url = f"https://data.moenv.gov.tw/api/v2/uv_p_01?api_key={MOENV_API_KEY}&format=json"
         uv_res = requests.get(uv_url, timeout=10).json()
@@ -98,7 +134,7 @@ def fetch_all_weather_data():
         cache["last_updated"] = current_time
     return integrated_data
 
-# --- 4. 隨機俏皮生活貼心提醒 ---
+# --- 5. 隨機俏皮生活貼心提醒 ---
 def get_warm_reminder(data, query_type):
     try: pop_val = int(data['pop'])
     except: pop_val = 0
@@ -119,9 +155,9 @@ def get_warm_reminder(data, query_type):
 
     if query_type in ['all', 'air']:
         if "普通" in aqi_status:
-            reminders.append("今天的空氣雖然及格但很邊緣，過敏小可憐們出門記得把口罩戴好！🤧")
+            reminders.append(random.choice(["今天的空氣雖然及格但很邊緣，過敏小可憐們出門記得把口罩戴好！🤧", "空氣指標正在走鋼索，過敏星人如果不想擤衛生紙到鼻子破皮，乖乖戴口罩！🧻"]))
         elif "不健康" in aqi_status or "對敏感族群" in aqi_status:
-            reminders.append(random.choice(["今天窗外空氣有點『有毒』！口罩快拉好，保護好妳高貴的肺！⚠️", "空氣品質正在鬧脾氣！沒事多待在室內修仙吧！🔮"]))
+            reminders.append(random.choice(["今天窗外空氣有點『有毒』！口罩快拉好，保護好妳高貴的肺！⚠️", "空氣品質正在鬧脾氣！過敏星人沒事多待在室內修仙吧！🔮"]))
         else:
             reminders.append("今天的空氣乾淨到像在清境農場！趕快大力吸三口，免費的奢華空氣不吸白不吸～🍃")
 
@@ -136,10 +172,10 @@ def get_warm_reminder(data, query_type):
     return " \n".join(reminders)
 
 
-# --- 5. 三大「絕對獨立」全新 Flex 卡片函式 (已砍掉無關數據) ---
+# --- 6. 三大「欄位絕對純淨獨立」Flex 卡片工廠 ---
 
 def create_pure_weather_card(city_name, data):
-    """【純天氣卡】只留天氣現況、預測氣溫、降雨機率"""
+    """【純天氣卡】完全刪除無關欄位，只留下天氣現況、預測氣溫、降雨機率"""
     reminder_text = get_warm_reminder(data, 'weather')
     return {
       "type": "bubble", "size": "mega",
@@ -171,14 +207,14 @@ def create_pure_weather_card(city_name, data):
     }
 
 def create_pure_air_card(city_name, data):
-    """【純空氣卡】只留 AQI 指標、空氣狀態"""
+    """【純空氣卡】完全刪除無關欄位，只留下 AQI 指標、空氣狀態"""
     reminder_text = get_warm_reminder(data, 'air')
     return {
       "type": "bubble", "size": "mega",
       "header": {
         "type": "box", "layout": "vertical", "backgroundColor": "#2a9d8f",
         "contents": [
-          {"type": "text", "text": "🍃 空氣品質監測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
+          {"type": "text", "text": "🍃 獨立空氣品質監測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
           {"type": "text", "text": city_name, "weight": "bold", "size": "xxl", "color": "#FFFFFF", "margin": "md"}
         ]
       },
@@ -201,14 +237,14 @@ def create_pure_air_card(city_name, data):
     }
 
 def create_pure_uv_card(city_name, data):
-    """【純紫外線卡】只留紫外線指數、曝曬風險"""
+    """【純紫外線卡】完全刪除無關欄位，只留下紫外線指數、曝曬風險"""
     reminder_text = get_warm_reminder(data, 'uv')
     return {
       "type": "bubble", "size": "mega",
       "header": {
         "type": "box", "layout": "vertical", "backgroundColor": "#e76f51",
         "contents": [
-          {"type": "text", "text": "🕶️ 紫外線指數監測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
+          {"type": "text", "text": "🕶️ 獨立紫外線監測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
           {"type": "text", "text": city_name, "weight": "bold", "size": "xxl", "color": "#FFFFFF", "margin": "md"}
         ]
       },
@@ -231,7 +267,7 @@ def create_pure_uv_card(city_name, data):
     }
 
 def generate_card_all(city_name, data):
-    """【綜合氣象卡】依然保留完整全包資訊"""
+    """【綜合大卡片】保留全包完整資訊 (深灰色)"""
     reminder_text = get_warm_reminder(data, 'all')
     return {
       "type": "bubble", "size": "mega",
@@ -267,7 +303,8 @@ def generate_card_all(city_name, data):
       }
     }
 
-# --- 6. Webhook ---
+
+# --- 7. Webhook 路由 ---
 @app.route("/webhook", methods=['POST'])
 def callback():
     signature = request.headers.get('X-Line-Signature', '')
@@ -276,30 +313,39 @@ def callback():
     except InvalidSignatureError: abort(400)
     return 'OK'
 
-# --- 7. 路由核心控制 (打錯字已徹底修正) ---
+
+# --- 8. 核心：模糊感應多輪記憶對話引擎 (完美過橋抽河版) ---
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    user_id = event.source.user_id  # 獲取 LINE 用戶 ID
     user_input = event.message.text.strip()
     user_input_lower = user_input.lower()
     
-    # ─── 第一階段引導 ───
-    if user_input_lower in ["我要查氣象", "呼叫管家！我想看今日氣象圖卡", "查氣象", "綜合氣象"]:
+    # ─── 第一階段：模糊感應多輪導引問城市 ───
+    if user_input in ["我要查氣象", "呼叫管家！我想看今日氣象圖卡", "查氣象", "綜合氣象"]:
+        set_user_state(user_id, "all")
         line_bot_api.reply_message(event.reply_token, TextMessage(text="☀️ 好喔！想要查詢哪一個縣市的『綜合氣象卡片』呢？\n(例如：台中、台北、高雄)"))
         return
+        
     elif any(k in user_input_lower for k in ["天氣", "氣溫", "溫度", "降雨", "今天天氣如何啊", "幾度"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n\n💬 請輸入：[城市名]+天氣\n(例如直接回覆：台南天氣、台北天氣)"))
+            set_user_state(user_id, "weather")
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n\n💬 請輸入城市名稱即可（例如：台南、台北）"))
             return
+            
     elif any(k in user_input_lower for k in ["空氣", "空氣品質", "aqi", "幫我看現在空氣品質好不好", "pm25"]):
-        if not any(key in user_input_lower for key in CITY_MAPPING.keys()):  # 💡 這裡打錯字已成功修正！
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🍃 收到！請問妳要看哪一個縣市的『空氣品質AQI』呢？\n\n💬 請輸入：[城市名]+空氣\n(例如直接回覆：台南空氣、台北空氣)"))
+        if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
+            set_user_state(user_id, "air")
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🍃 收到！請問妳要看哪一個縣市的『空氣品質AQI』呢？\n\n💬 請輸入城市名稱即可（example：新北、台南）"))
             return
+            
     elif any(k in user_input_lower for k in ["紫外線", "紫外線指數", "uv", "太陽好大！幫我查一下紫外線"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個縣市的『紫外線指數』呢？\n\n💬 請輸入：[城市名]+紫外線\n(例如直接回覆：台南紫外線、台北紫外線)"))
+            set_user_state(user_id, "uv")
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個縣市的『紫外線指數』呢？\n\n💬 請輸入城市名稱即可（example：彰化、澎湖）"))
             return
 
-    # ─── 第二階段解析 ───
+    # ─── 第二階段：解析輸入的字串裡是否有包含台灣縣市關鍵字 ───
     target_city_key = None
     for key in CITY_MAPPING.keys():
         if key in user_input_lower:
@@ -316,32 +362,45 @@ def handle_message(event):
             "aqi": "讀取中", "aqi_status": "請稍後", "uvi": "0", "uvi_level": "一般"
         })
         
-        # ─── 真正的獨立路由判斷（這一次把無關資訊完全摘除了！） ───
-        if any(k in user_input_lower for k in ["空氣", "aqi", "pm25"]):
-            pure_contents = create_pure_air_card(target_county, city_weather)
-            line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}空氣品質", contents=pure_contents))
+        # 💡 從 Firebase 讀取該用戶上一輪的查詢記憶
+        user_state = get_user_state(user_id) or {}
+        saved_type = user_state.get("query_type", "all")
+        
+        # 強大防護：如果使用者是一口氣盲打完「台南空氣」，直接給最優判斷
+        current_query = saved_type
+        if any(k in user_input_lower for k in ["空氣", "aqi", "pm25"]): current_query = "air"
+        elif any(k in user_input_lower for k in ["紫外線", "uv"]): current_query = "uv"
+        elif any(k in user_input_lower for k in ["天氣", "溫度", "氣溫", "幾度", "降雨"]): current_query = "weather"
+        
+        # ─── 根據最終決定的類別，發送真正徹底獨立的卡片 ───
+        if current_query == "air":
+            flex_contents = create_pure_air_card(target_county, city_weather)
+            line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}空氣品質", contents=flex_contents))
             
-        elif any(k in user_input_lower for k in ["紫外線", "uv"]):
-            pure_contents = create_pure_uv_card(target_county, city_weather)
-            line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}紫外線指數", contents=pure_contents))
+        elif current_query == "uv":
+            flex_contents = create_pure_uv_card(target_county, city_weather)
+            line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}紫外線指數", contents=flex_contents))
             
-        elif any(k in user_input_lower for k in ["天氣", "溫度", "氣溫", "幾度", "降雨"]):
-            pure_contents = create_pure_weather_card(target_county, city_weather)
-            line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}天氣預報", contents=pure_contents))
+        elif current_query == "weather":
+            flex_contents = create_pure_weather_card(target_county, city_weather)
+            line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}天氣預報", contents=flex_contents))
             
         else:
-            full_contents = generate_card_all(target_county, city_weather)
-            line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}綜合氣象", contents=full_contents))
+            flex_contents = generate_card_all(target_county, city_weather)
+            line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}綜合氣象", contents=flex_contents) )
+            
+        # 💥 任務完成，立刻過橋抽河！刪除 Firebase 記憶，迎接下一輪全新的詢問 💥
+        clear_user_state(user_id)
             
     else:
         line_bot_api.reply_message(
             event.reply_token,
             TextMessage(text="呀！小管家看不懂這個指令耶～🤯\n\n"
                              "請直接點選下方【LINE選單】，或是試著這樣對我打字喔：\n"
+                             "👉「台南」 (看綜合圖卡)\n"
                              "👉「台南天氣」 (看獨立天氣卡)\n"
                              "👉「台南空氣」 (看獨立空氣卡)\n"
-                             "👉「台南紫外線」 (看獨立防曬卡)\n"
-                             "👉 Bird「台南」 (看綜合圖卡)")
+                             "👉「台南紫外線」 (看獨立防曬卡)")
         )
 
 app.debug = False
