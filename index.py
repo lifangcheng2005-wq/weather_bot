@@ -231,11 +231,11 @@ def generate_guide_card():
             "contents": [
               {
                 "type": "button", "style": "secondary", "height": "sm", "color": "#457b9d",
-                "action": {"type": "uri", "label": "🌤️ 開啟：交通部中央氣象署全球資訊網", "uri": "https://www.cwa.gov.tw/"}
+                "action": {"type": "uri", "label": "🌍交通部中央氣象署全球資訊網", "uri": "https://www.cwa.gov.tw/"}
               },
               {
                 "type": "button", "style": "secondary", "height": "sm", "color": "#2a9d8f",
-                "action": {"type": "uri", "label": "🍃 開啟：中華民國環境部全球資訊網", "uri": "https://www.moenv.gov.tw/"}
+                "action": {"type": "uri", "label": "🍃中華民國環境部全球資訊網", "uri": "https://www.moenv.gov.tw/"}
               }
             ]
           },
