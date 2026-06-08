@@ -166,77 +166,61 @@ def get_warm_reminder(data, query_type):
     return " \n".join(reminders)
 
 
-# --- 6. 🛠️ 視覺大重構：三大清爽獨立大字卡 (Carousel 輪播型說明書) ---
+# --- 6. 🛠️ 視覺重構：一頁式大字體清晰版說明書 ---
 
-def generate_carousel_guide():
-    """💡 字體變大、間距拉寬、絕不擁擠的豪華輪播說明書"""
+def generate_guide_card():
+    """💡 字體全面變大（sm、md）、排版寬鬆、按鈕明顯的一頁式頂級功能導覽卡"""
     return {
-      "type": "carousel",
-      "contents": [
-        # 卡片 1：天氣導覽
-        {
-          "type": "bubble", "size": "mega",
-          "header": {
-            "type": "box", "layout": "vertical", "backgroundColor": "#3a86ff", "paddingAll": "lg",
-            "contents": [
-              {"type": "text", "text": "🌡️ 模式一：獨立天氣氣溫預報", "weight": "bold", "color": "#FFFFFF", "size": "md"}
-            ]
-          },
-          "body": {
-            "type": "box", "layout": "vertical", "spacing": "md", "paddingAll": "lg",
-            "contents": [
-              {"type": "text", "text": "想知道今天出門要不要帶傘、氣溫幾度？", "size": "sm", "color": "#444444", "weight": "bold", "wrap": True},
-              {"type": "text", "text": "👉 絕招一：直接手打「城市+天氣」\n例如輸入：台北天氣、台中溫度", "size": "sm", "color": "#666666", "wrap": True},
-              {"type": "text", "text": "👉 絕招二：點擊下方按鈕，直接傳送位置資訊，管家會自動吐出當地的獨立天氣卡！", "size": "sm", "color": "#666666", "wrap": True},
-              {"type": "button", "style": "primary", "color": "#3a86ff", "height": "sm", "margin": "md",
-                "action": {"type": "uri", "label": "📍 點我一鍵傳送天氣定位", "uri": "line://nv/location"}
-              }
-            ]
+      "type": "bubble", "size": "mega",
+      "header": {
+        "type": "box", "layout": "vertical", "backgroundColor": "#8338ec", "paddingAll": "lg",
+        "contents": [
+          {"type": "text", "text": "📖 氣象小管家功能說明書", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
+          {"type": "text", "text": "簡單三招，輕鬆調教！", "weight": "bold", "size": "xl", "color": "#FFFFFF", "margin": "sm"}
+        ]
+      },
+      "body": {
+        "type": "box", "layout": "vertical", "spacing": "lg", "paddingAll": "lg",
+        "contents": [
+          {"type": "text", "text": "點選下方【圖文選單】或【直接輸入文字】都可以查氣象喔！請試著這樣對我打字：", "size": "sm", "color": "#444444", "wrap": True},
+          
+          # 項目 1：天氣
+          {"type": "box", "layout": "horizontal", "spacing": "md", "contents": [
+              {"type": "box", "layout": "vertical", "backgroundColor": "#3a86ff", "cornerRadius": "md", "paddingAll": "xs", "width": "75px", "contents": [
+                  {"type": "text", "text": "查天氣", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
+              ]},
+              {"type": "text", "text": "手打：城市+天氣 (如: 台中天氣)\n即可獲得獨立的天氣氣溫卡片", "size": "sm", "color": "#555555", "wrap": True}
+          ]},
+          
+          # 項目 2：空氣
+          {"type": "box", "layout": "horizontal", "spacing": "md", "contents": [
+              {"type": "box", "layout": "vertical", "backgroundColor": "#2a9d8f", "cornerRadius": "md", "paddingAll": "xs", "width": "75px", "contents": [
+                  {"type": "text", "text": "查空氣", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
+              ]},
+              {"type": "text", "text": "手打：城市+空氣 (如: 台南空氣)\n即可獲得獨立的空氣品質卡片", "size": "sm", "color": "#555555", "wrap": True}
+          ]},
+          
+          # 項目 3：紫外線
+          {"type": "box", "layout": "horizontal", "spacing": "md", "contents": [
+              {"type": "box", "layout": "vertical", "backgroundColor": "#e76f51", "cornerRadius": "md", "paddingAll": "xs", "width": "75px", "contents": [
+                  {"type": "text", "text": "防曬卡", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
+              ]},
+              {"type": "text", "text": "手打：城市+紫外線 (如: 台北uv)\n即可獲得獨立的抗陽防曬卡片", "size": "sm", "color": "#555555", "wrap": True}
+          ]},
+          
+          {"type": "separator", "margin": "md"},
+          
+          # 一鍵定位大按鈕
+          {
+            "type": "button", "style": "primary", "color": "#ff006e", "height": "sm", "margin": "sm",
+            "action": {
+              "type": "uri",
+              "label": "📍 點我一鍵傳送當前位置 GPS",
+              "uri": "line://nv/location"
+            }
           }
-        },
-        # 卡片 2：空氣導覽
-        {
-          "type": "bubble", "size": "mega",
-          "header": {
-            "type": "box", "layout": "vertical", "backgroundColor": "#2a9d8f", "paddingAll": "lg",
-            "contents": [
-              {"type": "text", "text": "🍃 模式二：獨立空氣品質 (AQI)", "weight": "bold", "color": "#FFFFFF", "size": "md"}
-            ]
-          },
-          "body": {
-            "type": "box", "layout": "vertical", "spacing": "md", "paddingAll": "lg",
-            "contents": [
-              {"type": "text", "text": "過敏星人專屬！出門前想看空氣好不好？", "size": "sm", "color": "#444444", "weight": "bold", "wrap": True},
-              {"type": "text", "text": "👉 絕招一：直接手打「城市+空氣」\n例如輸入：台南空氣、高雄aqi", "size": "sm", "color": "#666666", "wrap": True},
-              {"type": "text", "text": "👉 絕招二：點擊下方按鈕傳送位置，管家會秒出當地的獨立空品與防護口罩提醒！", "size": "sm", "color": "#666666", "wrap": True},
-              {"type": "button", "style": "primary", "color": "#2a9d8f", "height": "sm", "margin": "md",
-                "action": {"type": "uri", "label": "📍 點我一鍵傳送空氣定位", "uri": "line://nv/location"}
-              }
-            ]
-          }
-        },
-        # 卡片 3：紫外線導覽
-        {
-          "type": "bubble", "size": "mega",
-          "header": {
-            "type": "box", "layout": "vertical", "backgroundColor": "#e76f51", "paddingAll": "lg",
-            "contents": [
-              {"type": "text", "text": "🕶️ 模式三：獨立紫外線防曬監測", "weight": "bold", "color": "#FFFFFF", "size": "md"}
-            ]
-          },
-          "body": {
-            "type": "box", "layout": "vertical", "spacing": "md", "paddingAll": "lg",
-            "contents": [
-              {"type": "text", "text": "美白防曬大作戰！今天外面的太陽毒不毒？", "size": "sm", "color": "#444444", "weight": "bold", "wrap": True},
-              {"type": "text", "text": "👉 絕招一：直接手打「城市+紫外線」\n例如輸入：台中紫外線、台北uv", "size": "sm", "color": "#666666", "wrap": True},
-              {"type": "text", "text": "👉 絕招二：點擊下方按鈕傳送位置，管家會直接幫妳看紫外線指數與抗陽指南！", "size": "sm", "color": "#666666", "wrap": True},
-              {"type": "button", "style": "primary", "color": "#e76f51", "height": "sm", "margin": "md",
-                "action": {"type": "uri", "label": "📍 點我一鍵傳送防曬定位", "uri": "line://nv/location"}
-              }
-            ]
-          }
-        }
-      ]
+        ]
+      }
     }
 
 def create_pure_weather_card(city_name, data):
@@ -375,7 +359,7 @@ def callback():
     return 'OK'
 
 
-# --- 8. 100% 精準：LINE Address 地址解算定位器 ---
+# --- 8. 精準反查：LINE Address 地址定位器 ---
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location_message(event):
     user_id = event.source.user_id
@@ -478,8 +462,8 @@ def handle_text_message(event):
         clear_user_state(user_id)
             
     else:
-        # 💡 防呆重構：當隨便打字時，噴出精心排版、字大好讀的 3 張輪播 Carousel 說明書
-        carousel_contents = generate_carousel_guide()
-        line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"氣象小管家使用說明書", contents=carousel_contents))
+        # 💥 完美防呆：一頁大字體、高對比色塊導覽卡片
+        guide_contents = generate_guide_card()
+        line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"氣象小管家使用說明書", contents=guide_contents))
 
 app.debug = False
