@@ -153,7 +153,7 @@ def get_warm_reminder(data, query_type):
         elif "不健康" in aqi_status or "對敏感族群" in aqi_status:
             reminders.append(random.choice(["今天窗外空氣有點『有毒』！口罩快拉好，保護好妳高貴的肺！⚠️", "空氣品質正在鬧脾氣！過敏星人沒事多待在室內修仙吧！🔮"]))
         else:
-            reminders.append("今天的空氣乾淨到像在清境農場！趕快大力吸三口，免費的奢華空氣不吸白不吸～🍃")
+            reminders.append("今天的空氣乾淨到像在清境農場！趕快大力吸三口，免費的奢華空氣不吸白不白～🍃")
 
     if query_type in ['all', 'uv']:
         if uvi_val >= 8:
@@ -166,7 +166,7 @@ def get_warm_reminder(data, query_type):
     return " \n".join(reminders)
 
 
-# --- 6. 🛠️ 視覺重構：大字體單頁說明書 (新增選單外部連結功能說明) ---
+# --- 6. 🛠️ 視覺重構：大字體單頁說明書 (修復官方平台排版，文字絕不擠壓) ---
 
 def generate_guide_card():
     return {
@@ -179,7 +179,7 @@ def generate_guide_card():
         ]
       },
       "body": {
-        "type": "box", "layout": "vertical", "spacing": "md", "paddingAll": "lg",
+        "type": "box", "layout": "vertical", "spacing": "lg", "paddingAll": "lg",
         "contents": [
           {"type": "text", "text": "直接點擊下方的【圖文選單按鈕】，管家會啟動導引；您也可以直接使用【手打輸入】快速查詢：", "size": "sm", "color": "#444444", "wrap": True},
           
@@ -204,7 +204,7 @@ def generate_guide_card():
               {"type": "box", "layout": "vertical", "backgroundColor": "#2a9d8f", "cornerRadius": "md", "paddingAll": "xs", "width": "90px", "contents": [
                   {"type": "text", "text": "🌀 監測空品", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
               ]},
-              {"type": "text", "text": "點擊該圖示，或手打「城市+空氣」(如: 台南空氣)，獲取只看 AQI 的【獨立空氣卡】。", "size": "sm", "color": "#555555", "wrap": True}
+              {"type": "text", "text": "點擊該圖示，推播只看 AQI 與呼吸道防護提醒的【獨立空氣卡】。", "size": "sm", "color": "#555555", "wrap": True}
           ]},
           
           # 項目 4：紫外線卡
@@ -212,35 +212,38 @@ def generate_guide_card():
               {"type": "box", "layout": "vertical", "backgroundColor": "#e76f51", "cornerRadius": "md", "paddingAll": "xs", "width": "90px", "contents": [
                   {"type": "text", "text": "☀️ 抗陽防曬", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
               ]},
-              {"type": "text", "text": "點擊該圖示，或手打「城市+紫外線」(如: 台北uv)，獲取專屬防曬指數的【獨立防曬卡】。", "size": "sm", "color": "#555555", "wrap": True}
+              {"type": "text", "text": "點擊該圖示，推播只包防曬乳、抗陽指標的【獨立防曬卡】。", "size": "sm", "color": "#555555", "wrap": True}
           ]},
 
-          # 項目 5：新增選單右上/右下的官方網站連結解說
-          {"type": "box", "layout": "horizontal", "spacing": "md", "contents": [
-              {"type": "box", "layout": "vertical", "backgroundColor": "#457b9d", "cornerRadius": "md", "paddingAll": "xs", "width": "90px", "contents": [
-                  {"type": "text", "text": "🔗 官方平台", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
+          # 🛠️ 項目 5 重構亮點：改用 vertical 橫向延展排版，字體 100% 完整呈現、不擠壓
+          {"type": "box", "layout": "vertical", "spacing": "xs", "contents": [
+              {"type": "box", "layout": "horizontal", "contents": [
+                  {"type": "box", "layout": "vertical", "backgroundColor": "#457b9d", "cornerRadius": "md", "paddingAll": "xs", "width": "110px", "contents": [
+                      {"type": "text", "text": "🌐 官方連結欄", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
+                  ]},
+                  {"type": "text", "text": " 點擊選單右側或下方連結：", "size": "sm", "color": "#444444", "weight": "bold", "gravity": "center"}
               ]},
-              {"type": "text", "text": "點擊選單右側按鈕，或下方快捷鍵，可直接連線至【中央氣象署】與【環境部全球資訊網】觀看一手資料。", "size": "sm", "color": "#555555", "wrap": True}
+              {"type": "text", "text": "可一鍵直接連線至【中央氣象署】與【環境部全球資訊網】觀看政府第一手權威原始數據。", "size": "sm", "color": "#555555", "wrap": True, "margin": "sm"}
           ]},
           
           {"type": "separator", "margin": "md"},
           
-          # 🔗 新增：中央氣象署與環境部的官方 WMS 快速外連網頁連結按鈕
+          # 🔗 外部網頁快速外連連結按鈕（寬度優化）
           {
             "type": "box", "layout": "horizontal", "spacing": "md", "margin": "sm",
             "contents": [
               {
                 "type": "button", "style": "secondary", "height": "sm", "color": "#457b9d",
-                "action": {"type": "uri", "label": "🌐 中央氣象署", "uri": "https://www.cwa.gov.tw/"}
+                "action": {"type": "uri", "label": "🌤️ 中央氣象署", "uri": "https://www.cwa.gov.tw/"}
               },
               {
                 "type": "button", "style": "secondary", "height": "sm", "color": "#2a9d8f",
-                "action": {"type": "uri", "label": "🌐 環境部官網", "uri": "https://www.moenv.gov.tw/"}
+                "action": {"type": "uri", "label": "🍃 環境部官網", "uri": "https://www.moenv.gov.tw/"}
               }
             ]
           },
 
-          # 皇家深邃藍 GPS 按鈕
+          # 皇家深邃藍 GPS 定位按鈕
           {
             "type": "button", "style": "primary", "color": "#1d3557", "height": "sm", "margin": "sm",
             "action": {
@@ -269,8 +272,7 @@ def create_pure_weather_card(city_name, data):
         "contents": [
           {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "☁️ 天氣現況", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": data['wx'], "align": "end", "size": "sm", "weight": "bold"}]},
           {"type": "separator", "margin": "md"},
-          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [{"type": "text", "text": "🌡️ 預測氣溫", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": f"{data['min_t']}°C ~ {data['max_t']}°C", "align": "end", "size": "sm", "weight": "bold"}
-          ]},
+          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [{"type": "text", "text": "🌡️ 預測氣溫", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": f"{data['min_t']}°C ~ {data['max_t']}°C", "align": "end", "size": "sm", "weight": "bold"}]},
           {"type": "separator", "margin": "md"},
           {"type": "box", "layout": "horizontal", "margin": "md", "contents": [{"type": "text", "text": "💧 降雨機率", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": f"{data['pop']}%", "align": "end", "size": "sm", "color": "#0077b6", "weight": "bold"}]},
           {"type": "separator", "margin": "lg"},
@@ -453,7 +455,7 @@ def handle_text_message(event):
     elif any(k in user_input_lower for k in ["紫外線", "紫外線指數", "uv", "太陽好大！幫我查一下紫外線"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
             set_user_state(user_id, "uv")
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個縣市的『紫外線指數』呢？\n(example：彰化、澎湖、台北)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個官方『紫外線指數』呢？\n(example：彰化、澎湖、台北)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
             return
 
     target_city_key = None
