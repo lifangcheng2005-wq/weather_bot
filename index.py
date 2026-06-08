@@ -172,7 +172,7 @@ def generate_flex_message(city_name, data):
     }
 
 # --- 5. Webhook 路由 ---
-@app.route("/callback", methods=['POST'])
+@app.route("/webhook", methods=['POST'])
 def callback():
     signature = request.headers.get('X-Line-Signature', '')
     body = request.get_data(as_text=True)
