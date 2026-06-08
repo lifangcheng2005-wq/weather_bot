@@ -53,32 +53,31 @@ def handle_message(event):
 
 
 # =====================================================================
-# 2. Dialogflow Fulfillment 接收端點 (對應 Dialogflow Fulfillment 填 /webhook)
+# 2. Dialogflow Fulfillment 接收端點 (修正版)
 # =====================================================================
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    # 讀取 Dialogflow 傳過來的 JSON 資料
     req = request.get_json(force=True)
     
     # 取得 Dialogflow 目前觸發的 Action 名稱
     action = req["queryResult"]["action"]
     user_query_text = req["queryResult"]["queryText"]
     
-    info = ""
-    
-    # 妳原本舊有的電影分級查詢邏輯也可以保留（這邊示範妳原有的寫法架構）
-    if action == "rateChoice":
-        # (此處可放妳原本串接 Firestore 電影資料庫的程式碼...)
-        info = "您選擇的電影分級功能正在維護中，或已移至特定模組。"
-        
-    # 當 Dialogflow 觸發氣象查詢動作，或是走到 input.unknown (聽不懂) 時，直接丟給 Gemini 處理
-    elif action in ["queryWeather", "input.unknown"]:
-        # 呼叫我們封裝好的「AI 氣象大腦」函式
+    # 當 Dialogflow 觸發氣象查詢（對應我們剛剛填的 queryWeather）
+    if action in ["queryWeather", "input.unknown"]:
+        # 嘗試直接從 Dialogflow 解析好的參數拿城市名稱，拿不到再交給 Gemini 猜
+        try:
+            geo_city = req["queryResult"]["parameters"].get("geo-city", "")
+            if geo_city:
+                # 如果有抓到城市（例如：臺中），直接在問題前面加上提示，讓大腦更精準
+                user_query_text = f"我要查詢 {geo_city}。原句：{user_query_text}"
+        except:
+            pass
+            
         info = ask_gemini_weather(user_query_text)
     else:
         info = "抱歉，此功能尚未設定對應的 Action。"
 
-    # 包裝成 Dialogflow 格式的 JSON 回傳
     return make_response(jsonify({"fulfillmentText": info}))
 
 
