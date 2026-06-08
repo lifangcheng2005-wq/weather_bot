@@ -59,37 +59,7 @@ def clear_user_state(user_id):
         print(f"❌ Firebase 刪除異常: {e}")
 
 
-# --- 4. 🧠 新增：台灣 GPS 經緯度精準縣市判定器 ---
-def get_city_by_coordinates(lat, lon):
-    """資管演算法：利用經緯度邊界，秒判斷使用者目前在台灣哪一個縣市"""
-    # 這裡用大略的台灣縣市地理方格進行極速分流判斷
-    if lat > 25.1: return "基隆"
-    elif lat > 24.95 and lon > 121.45: return "台北"
-    elif lat > 24.85 and lon > 121.2: return "新北"
-    elif lat > 24.75 and lon > 121.0: return "桃園"
-    elif lat > 24.6 and lon > 121.5: return "宜蘭"
-    elif lat > 24.5 and lon <= 121.1: return "新竹"
-    elif lat > 24.3 and lon > 121.3: return "花蓮"
-    elif lat > 24.2 and lon <= 120.9: return "苗栗"
-    elif lat > 23.95 and lon <= 120.8: return "台中"
-    elif lat > 23.8 and lon <= 120.6: return "彰化"
-    elif lat > 23.7 and lon > 120.7: return "南投"
-    elif lat > 23.55 and lon <= 120.4: return "雲林"
-    elif lat > 23.40 and lon <= 120.5: return "嘉義"
-    elif lat > 22.85 and lon <= 120.4: return "台南"
-    elif lat > 22.45 and lon <= 120.4: return "高雄"
-    elif lat > 22.2:
-        if lon > 120.8: return "台東"
-        else: return "屏東"
-    # 離島判定
-    if lon < 119.7: return "澎湖"
-    if lat > 26.0: return "馬祖"
-    if lon < 118.5: return "金門"
-    
-    return "台中" # 預設兜底防呆縣市
-
-
-# --- 5. 核心資料撈取與 JSON 整合函式 ---
+# --- 4. 核心資料撈取與 JSON 整合函式 ---
 def fetch_all_weather_data():
     current_time = time.time()
     if cache["data"] and (current_time - cache["last_updated"] < CACHE_DURATION):
@@ -158,8 +128,7 @@ def fetch_all_weather_data():
         cache["last_updated"] = current_time
     return integrated_data
 
-
-# --- 6. 💬 史詩級擴充：超毒舌/超甜心隨機生活貼心提醒金句庫 ---
+# --- 5. 隨機俏皮生活貼心提醒 ---
 def get_warm_reminder(data, query_type):
     try: pop_val = int(data['pop'])
     except: pop_val = 0
@@ -170,107 +139,104 @@ def get_warm_reminder(data, query_type):
     
     if query_type in ['all', 'weather']:
         if pop_val >= 70:
-            reminders.append(random.choice([
-                "降雨機率高達分之裝熟！出門沒帶傘的話，妳就準備在街上跳曼波求雨了吧～☔",
-                "今天降雨機率太有誠意了，出門一定要抓一把傘，別讓自己變成現撈的落湯雞捏！🐔",
-                "偵測到天空今天走『愛哭鬼』路線，降雨機率直接灌頂！沒帶雨具妳會哭，真的！🥺",
-                "外面隨時會倒大水！聽管家的話把傘拿好，柏油路今天不是很想跟妳摔車貼貼喔～🚗"
-            ]))
+            reminders.append(random.choice(["降雨機率高達分之裝熟！出門沒帶傘的話，妳就準備在街上跳曼波求雨了吧～☔", "今天降雨機率太有誠意了，出門一定要抓一把傘，別讓自己變成現撈的落湯雞捏！🐔"]))
         elif pop_val >= 40:
-            reminders.append(random.choice([
-                "今天的天空有點傲嬌，降雨機率半吊子，折疊傘還是塞進包包吧，防呆用！🎒",
-                "雨神今天可能心情好，降雨機率有一半！賭一把不帶傘？我賭妳會輸，快去拿傘！🔮",
-                "天空陰陰的像在生悶氣，雖然還沒下，但乖乖帶把傘總比在路邊淋雨當文藝女主角好吧？🎬"
-            ]))
+            reminders.append("今天的天空有點傲嬌，降雨機率半吊子，折疊傘還是塞進包包吧！🎒")
         elif "雨" in data['wx']:
-            reminders.append(random.choice([
-                "外面現在正在下雨！路上注意安全，行車距離保持好，衣服濕了會感冒的捏！🌧️",
-                "嘩啦啦啦～雨滴正在唱歌。聽管話，乖乖待在室內，別出去外面瘋狂奔跑啦～🏡"
-            ]))
+            reminders.append("外面現在正在下雨！開車騎車慢一點，柏油路今天不是很想跟妳貼貼喔～🚗")
         else:
-            reminders.append(random.choice([
-                "目前看來是不帶傘也穩過的一天！快出門去踩踩陽光，別把自己曬發霉啦～☀️",
-                "天氣晴朗小福星！這天氣完美到不出去喝杯奶茶都對不起自己的扣達了！🥤",
-                "偵測到晴天 buff 已疊滿！還不快出去玩，要把自己當作馬鈴薯種在沙發上嗎？🥔",
-                "天空乾乾淨淨，完全不用帶傘！是個適合拍美照發限動的完美日子，出發囉！📸"
-            ]))
+            reminders.append(random.choice(["目前看來是不帶傘也穩過的一天！快出門別發霉啦～☀️", "天氣晴朗小福星！這天氣完美到不出去喝杯奶茶都對不起自己的扣達了！🥤"]))
 
     if query_type in ['all', 'air']:
         if "普通" in aqi_status:
-            reminders.append(random.choice([
-                "今天的空氣雖然及格但很邊緣，過敏小可憐們出門記得把口罩戴好，別一直打噴嚏！🤧",
-                "空氣指標正在走鋼索，防禦力有點低。過敏星人如果不想擤衛生紙到鼻子破皮，乖乖戴口罩！🧻"
-            ]))
+            reminders.append(random.choice(["今天的空氣雖然及格但很邊緣，過敏小可憐們出門記得把口罩戴好！🤧", "空氣指標正在走鋼索，過敏星人如果不想擤衛生紙到鼻子破皮，乖乖戴口罩！🧻"]))
         elif "不健康" in aqi_status or "對敏感族群" in aqi_status:
-            reminders.append(random.choice([
-                "今天窗外空氣有點『有毒』！乖，暫時別去外面瘋狂跑步，口罩快拉好，保護好妳高貴的肺！⚠️",
-                "空氣品質正在鬧脾氣！過敏星人今天嚴禁開啟人體清淨機模式，沒事多待在室內修仙吧！🔮",
-                "警報！外面的空氣充滿迷霧，這不是仙境是污染！快把口罩戴上，拒絕當人體吸塵器！👺"
-            ]))
+            reminders.append(random.choice(["今天窗外空氣有點『有毒』！口罩快拉好，保護好妳高貴的肺！⚠️", "空氣品質正在鬧脾氣！過敏星人沒事多待在室內修仙吧！🔮"]))
         else:
-            reminders.append(random.choice([
-                "今天的空氣乾淨到像在清境農場！趕快大力吸三口，免費的奢華空氣不吸白不吸～🍃",
-                "PM2.5 今天集體放假去了！空氣超級無敵好，家裡窗戶快打開通風一波～🪟",
-                "今天的空氣品質是極品！吸一口神清氣爽，吸兩口考試都考一百分啦！💯"
-            ]))
+            reminders.append("今天的空氣乾淨到像在清境農場！趕快大力吸三口，免費的奢華空氣不吸白不吸～🍃")
 
     if query_type in ['all', 'uv']:
         if uvi_val >= 8:
-            reminders.append(random.choice([
-                "紫外線指數爆表啦！今天太陽公公沒在跟妳客氣的，防曬乳塗厚一點，不然出門一趟直接變黑炭！🔥",
-                "這紫外線是要把人烤熟嗎？防曬、墨鏡、遮陽傘快使出三防防禦，不要跟太陽硬碰硬！🕶️",
-                "吸血鬼警告！外面的太陽會把人融化，非必要請勿在陽光下曝曬，妳不想變成行走的烤肉吧？🍖"
-            ]))
+            reminders.append(random.choice(["紫外線指數爆表啦！防曬乳塗厚一點，不然出門一趟直接變黑炭！🔥", "這紫外線是要把人烤熟嗎？防曬、墨鏡、遮陽傘快使出三防防禦！🕶️"]))
         elif uvi_val >= 5:
-            reminders.append(random.choice([
-                "紫外線有點微微囂張喔，雖然沒有到融化的程度，但美白很貴的，防曬還是要擦一下啦！🧴",
-                "陽光普照但帶點小惡意，紫外線指數正在蠢蠢欲動，出門陰影處多走走，別被曬黑了！🐾"
-            ]))
+            reminders.append("紫外線有點微微囂張喔，雖然沒有到融化的程度，但美白很貴的，防曬還是要擦一下啦！🧴")
         else:
-            reminders.append(random.choice([
-                "今天的紫外線很善良，頂多幫妳補補維生素D，不用怕被曬成黑炭，放心出去玩！☀️",
-                "陽光很溫柔，紫外線今天處於休眠狀態，是個適合在草地上滾來滾去的好日子！🌱"
-            ]))
+            reminders.append("今天的紫外線很善良，頂多幫妳補補維生素D，放心出去玩！☀️")
 
     return " \n".join(reminders)
 
 
-# --- 7. 五大視覺 Flex 卡片工廠 (說明書追加「一鍵GPS位置傳送」) ---
+# --- 6. 🛠️ 視覺大重構：三大清爽獨立大字卡 (Carousel 輪播型說明書) ---
 
-def generate_guide_card():
-    """💡 升級版：說明書底部增加「傳送地理位置」動作按鈕"""
+def generate_carousel_guide():
+    """💡 字體變大、間距拉寬、絕不擁擠的豪華輪播說明書"""
     return {
-      "type": "bubble", "size": "mega",
-      "header": {
-        "type": "box", "layout": "vertical", "backgroundColor": "#8338ec",
-        "contents": [
-          {"type": "text", "text": "📖 氣象小管家超強說明書", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
-          {"type": "text", "text": "如何調教小管家？", "weight": "bold", "size": "xl", "color": "#FFFFFF", "margin": "md"}
-        ]
-      },
-      "body": {
-        "type": "box", "layout": "vertical", "spacing": "sm",
-        "contents": [
-          {"type": "text", "text": "嗨！我是妳的專屬氣象管家 🧞‍♂️\n除了點下方選單或手打「台中天氣」之外，現在管家解鎖了『即時 GPS 位置導航』功能囉！", "size": "xs", "color": "#555555", "wrap": True},
-          {"type": "separator", "margin": "sm"},
-          {"type": "box", "layout": "vertical", "spacing": "xs", "contents": [
-              {"type": "text", "text": "🖼️ 盲打城市名 (例如「台南」) -> 噴綜合大圖卡", "size": "xs", "color": "#666666"},
-              {"type": "text", "text": "🌡️ 縣市+天氣 (例如「台北天氣」) -> 噴純天氣氣溫卡", "size": "xs", "color": "#3a86ff", "weight": "bold"},
-              {"type": "text", "text": "🍃 縣市+空氣 (例如「高雄空氣」) -> 噴純空氣品質卡", "size": "xs", "color": "#2a9d8f", "weight": "bold"},
-              {"type": "text", "text": "🕶️ 縣市+防曬 (例如「宜蘭紫外線」) -> 噴純防曬卡", "size": "xs", "color": "#e76f51", "weight": "bold"}
-          ]},
-          {"type": "separator", "margin": "md"},
-          # 🚀 亮點技術：這顆按鈕按下去，會直接彈出 LINE 的內建地圖讓使用者一鍵發送位置！
-          {
-            "type": "button", "style": "primary", "color": "#ff006e", "height": "sm", "margin": "md",
-            "action": {
-              "type": "uri",
-              "label": "📍 點我一鍵發送當前 GPS 位置",
-              "uri": "line://nv/location"
-            }
+      "type": "carousel",
+      "contents": [
+        # 卡片 1：天氣導覽
+        {
+          "type": "bubble", "size": "mega",
+          "header": {
+            "type": "box", "layout": "vertical", "backgroundColor": "#3a86ff", "paddingAll": "lg",
+            "contents": [
+              {"type": "text", "text": "🌡️ 模式一：獨立天氣氣溫預報", "weight": "bold", "color": "#FFFFFF", "size": "md"}
+            ]
+          },
+          "body": {
+            "type": "box", "layout": "vertical", "spacing": "md", "paddingAll": "lg",
+            "contents": [
+              {"type": "text", "text": "想知道今天出門要不要帶傘、氣溫幾度？", "size": "sm", "color": "#444444", "weight": "bold", "wrap": True},
+              {"type": "text", "text": "👉 絕招一：直接手打「城市+天氣」\n例如輸入：台北天氣、台中溫度", "size": "sm", "color": "#666666", "wrap": True},
+              {"type": "text", "text": "👉 絕招二：點擊下方按鈕，直接傳送位置資訊，管家會自動吐出當地的獨立天氣卡！", "size": "sm", "color": "#666666", "wrap": True},
+              {"type": "button", "style": "primary", "color": "#3a86ff", "height": "sm", "margin": "md",
+                "action": {"type": "uri", "label": "📍 點我一鍵傳送天氣定位", "uri": "line://nv/location"}
+              }
+            ]
           }
-        ]
-      }
+        },
+        # 卡片 2：空氣導覽
+        {
+          "type": "bubble", "size": "mega",
+          "header": {
+            "type": "box", "layout": "vertical", "backgroundColor": "#2a9d8f", "paddingAll": "lg",
+            "contents": [
+              {"type": "text", "text": "🍃 模式二：獨立空氣品質 (AQI)", "weight": "bold", "color": "#FFFFFF", "size": "md"}
+            ]
+          },
+          "body": {
+            "type": "box", "layout": "vertical", "spacing": "md", "paddingAll": "lg",
+            "contents": [
+              {"type": "text", "text": "過敏星人專屬！出門前想看空氣好不好？", "size": "sm", "color": "#444444", "weight": "bold", "wrap": True},
+              {"type": "text", "text": "👉 絕招一：直接手打「城市+空氣」\n例如輸入：台南空氣、高雄aqi", "size": "sm", "color": "#666666", "wrap": True},
+              {"type": "text", "text": "👉 絕招二：點擊下方按鈕傳送位置，管家會秒出當地的獨立空品與防護口罩提醒！", "size": "sm", "color": "#666666", "wrap": True},
+              {"type": "button", "style": "primary", "color": "#2a9d8f", "height": "sm", "margin": "md",
+                "action": {"type": "uri", "label": "📍 點我一鍵傳送空氣定位", "uri": "line://nv/location"}
+              }
+            ]
+          }
+        },
+        # 卡片 3：紫外線導覽
+        {
+          "type": "bubble", "size": "mega",
+          "header": {
+            "type": "box", "layout": "vertical", "backgroundColor": "#e76f51", "paddingAll": "lg",
+            "contents": [
+              {"type": "text", "text": "🕶️ 模式三：獨立紫外線防曬監測", "weight": "bold", "color": "#FFFFFF", "size": "md"}
+            ]
+          },
+          "body": {
+            "type": "box", "layout": "vertical", "spacing": "md", "paddingAll": "lg",
+            "contents": [
+              {"type": "text", "text": "美白防曬大作戰！今天外面的太陽毒不毒？", "size": "sm", "color": "#444444", "weight": "bold", "wrap": True},
+              {"type": "text", "text": "👉 絕招一：直接手打「城市+紫外線」\n例如輸入：台中紫外線、台北uv", "size": "sm", "color": "#666666", "wrap": True},
+              {"type": "text", "text": "👉 絕招二：點擊下方按鈕傳送位置，管家會直接幫妳看紫外線指數與抗陽指南！", "size": "sm", "color": "#666666", "wrap": True},
+              {"type": "button", "style": "primary", "color": "#e76f51", "height": "sm", "margin": "md",
+                "action": {"type": "uri", "label": "📍 點我一鍵傳送防曬定位", "uri": "line://nv/location"}
+              }
+            ]
+          }
+        }
+      ]
     }
 
 def create_pure_weather_card(city_name, data):
@@ -399,7 +365,7 @@ def generate_card_all(city_name, data):
     }
 
 
-# --- 8. Webhook 接收路由 ---
+# --- 7. Webhook 接收路由 ---
 @app.route("/webhook", methods=['POST'])
 def callback():
     signature = request.headers.get('X-Line-Signature', '')
@@ -409,46 +375,43 @@ def callback():
     return 'OK'
 
 
-# --- 9. 🚀 技術亮點：新增 GPS 地理位置訊息處理器 ---
+# --- 8. 100% 精準：LINE Address 地址解算定位器 ---
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location_message(event):
     user_id = event.source.user_id
-    lat = event.message.latitude   # 抓取緯度
-    lon = event.message.longitude  # 抓取經度
+    address_str = event.message.address  
+    print(f"📍 使用者傳送的地址為: {address_str}")
     
-    # 利用我們寫的地理演算法，秒反推縣市名稱！
-    detected_city_name = get_city_by_coordinates(lat, lon)
-    
-    # 讀取 Firebase 記憶看他剛才是點了什麼功能
+    detected_county = "臺中市" 
+    for key in CITY_MAPPING.keys():
+        formatted_key = key.replace("台", "臺")
+        if formatted_key in address_str or key in address_str:
+            detected_county = CITY_MAPPING[key]["county"]
+            break
+            
     user_state = get_user_state(user_id) or {}
     saved_type = user_state.get("query_type", "all")
     
     all_data = fetch_all_weather_data()
-    # 統一補上「市」或「縣」以利政府 API 對齊
-    full_county_name = detected_city_name + ("縣" if detected_city_name in ["彰化", "南投", "雲林", "嘉義", "屏東", "宜蘭", "花蓮", "台東", "澎湖", "金門", "連江"] else "市")
-    if detected_city_name == "馬祖": full_county_name = "連江縣"
-        
-    city_weather = all_data.get(full_county_name.replace("台", "臺"), {
+    city_weather = all_data.get(detected_county, {
         "wx": "情報更新中", "pop": "0", "min_t": "--", "max_t": "--",
         "aqi": "讀取中", "aqi_status": "請稍後", "uvi": "0", "uvi_level": "一般"
     })
     
-    # 依照多輪記憶分流發送卡片
     if saved_type == "air":
-        flex_contents = create_pure_air_card(full_county_name, city_weather)
+        flex_contents = create_pure_air_card(detected_county, city_weather)
     elif saved_type == "uv":
-        flex_contents = create_pure_uv_card(full_county_name, city_weather)
+        flex_contents = create_pure_uv_card(detected_county, city_weather)
     elif saved_type == "weather":
-        flex_contents = create_pure_weather_card(full_county_name, city_weather)
+        flex_contents = create_pure_weather_card(detected_county, city_weather)
     else:
-        flex_contents = generate_card_all(full_county_name, city_weather)
+        flex_contents = generate_card_all(detected_county, city_weather)
         
-    # 發送卡片並清空狀態
-    line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{full_county_name}即時觀測", contents=flex_contents))
+    line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{detected_county}即時觀測", contents=flex_contents))
     clear_user_state(user_id)
 
 
-# --- 10. 狀態感應文字訊息處理器 ---
+# --- 9. 狀態感應文字訊息處理器 ---
 @handler.add(MessageEvent, message=TextMessage)
 def handle_text_message(event):
     user_id = event.source.user_id  
@@ -515,7 +478,8 @@ def handle_text_message(event):
         clear_user_state(user_id)
             
     else:
-        guide_contents = generate_guide_card()
-        line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"氣象小管家使用說明書", contents=guide_contents))
+        # 💡 防呆重構：當隨便打字時，噴出精心排版、字大好讀的 3 張輪播 Carousel 說明書
+        carousel_contents = generate_carousel_guide()
+        line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"氣象小管家使用說明書", contents=carousel_contents))
 
 app.debug = False
