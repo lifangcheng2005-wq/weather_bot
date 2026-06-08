@@ -1,0 +1,4 @@
+flask
+google-genai
+line-bot-sdk
+requests
