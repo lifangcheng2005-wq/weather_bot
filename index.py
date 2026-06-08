@@ -440,19 +440,19 @@ def handle_text_message(event):
     elif any(k in user_input_lower for k in ["天氣", "氣溫", "溫度", "降雨", "今天天氣如何啊", "幾度"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
             set_user_state(user_id, "weather")
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(example: 台中、宜蘭、屏東)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(例如: 台中、宜蘭、屏東)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
             return
             
     elif any(k in user_input_lower for k in ["空氣", "空氣品質", "aqi", "幫我看現在空氣品質好不好", "pm25"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
             set_user_state(user_id, "air")
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🍃 收到！請問妳要看哪一個縣市的『空氣品質AQI』呢？\n(example：新北、台南、馬祖)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🍃 收到！請問妳要看哪一個縣市的『空氣品質AQI』呢？\n(例如：新北、台南、馬祖)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
             return
             
     elif any(k in user_input_lower for k in ["紫外線", "紫外線指數", "uv", "太陽好大！幫我查一下紫外線"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
             set_user_state(user_id, "uv")
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個官方『紫外線指數』呢？\n(example：彰化、澎湖、台北)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個官方『紫外線指數』呢？\n(例如：彰化、澎湖、台北)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
             return
 
     target_city_key = None
