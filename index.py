@@ -26,7 +26,6 @@ cache = {
 }
 CACHE_DURATION = 1200  
 
-# 載入全台城市對照表 JSON
 with open("city_mapping.json", "r", encoding="utf-8") as f:
     CITY_MAPPING = json.load(f)
 
@@ -99,7 +98,7 @@ def fetch_all_weather_data():
         cache["last_updated"] = current_time
     return integrated_data
 
-# --- 4. 擴充隨機俏皮生活貼心提醒 ---
+# --- 4. 隨機俏皮生活貼心提醒 ---
 def get_warm_reminder(data, query_type):
     try: pop_val = int(data['pop'])
     except: pop_val = 0
@@ -137,37 +136,28 @@ def get_warm_reminder(data, query_type):
     return " \n".join(reminders)
 
 
-# --- 5. 強制更名避開快取！三大「極致純淨」獨立 Flex 卡片 ---
+# --- 5. 三大「絕對獨立」全新 Flex 卡片函式 (已砍掉無關數據) ---
 
 def create_pure_weather_card(city_name, data):
-    """【純天氣卡】絕無空氣、紫外線欄位 (天空藍)"""
+    """【純天氣卡】只留天氣現況、預測氣溫、降雨機率"""
     reminder_text = get_warm_reminder(data, 'weather')
     return {
       "type": "bubble", "size": "mega",
       "header": {
         "type": "box", "layout": "vertical", "backgroundColor": "#3a86ff",
         "contents": [
-          {"type": "text", "text": "🌡️ 天氣與氣溫觀報", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
+          {"type": "text", "text": "🌡️ 獨立天氣與氣溫觀測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
           {"type": "text", "text": city_name, "weight": "bold", "size": "xxl", "color": "#FFFFFF", "margin": "md"}
         ]
       },
       "body": {
         "type": "box", "layout": "vertical",
         "contents": [
-          {"type": "box", "layout": "horizontal", "contents": [
-              {"type": "text", "text": "☁️ 天氣現況", "color": "#aaaaaa", "size": "sm"}, 
-              {"type": "text", "text": data['wx'], "align": "end", "size": "sm", "weight": "bold"}
-          ]},
+          {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "☁️ 天氣現況", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": data['wx'], "align": "end", "size": "sm", "weight": "bold"}]},
           {"type": "separator", "margin": "md"},
-          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [
-              {"type": "text", "text": "🌡️ 預測氣溫", "color": "#aaaaaa", "size": "sm"}, 
-              {"type": "text", "text": f"{data['min_t']}°C ~ {data['max_t']}°C", "align": "end", "size": "sm", "weight": "bold"}
-          ]},
+          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [{"type": "text", "text": "🌡️ 預測氣溫", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": f"{data['min_t']}°C ~ {data['max_t']}°C", "align": "end", "size": "sm", "weight": "bold"}]},
           {"type": "separator", "margin": "md"},
-          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [
-              {"type": "text", "text": "💧 降雨機率", "color": "#aaaaaa", "size": "sm"}, 
-              {"type": "text", "text": f"{data['pop']}%", "align": "end", "size": "sm", "color": "#0077b6", "weight": "bold"}
-          ]},
+          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [{"type": "text", "text": "💧 降雨機率", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": f"{data['pop']}%", "align": "end", "size": "sm", "color": "#0077b6", "weight": "bold"}]},
           {"type": "separator", "margin": "lg"},
           {
             "type": "box", "layout": "vertical", "margin": "md", "backgroundColor": "#edf2f7", "paddingAll": "md", "cornerRadius": "md",
@@ -181,7 +171,7 @@ def create_pure_weather_card(city_name, data):
     }
 
 def create_pure_air_card(city_name, data):
-    """【純空氣卡】絕無溫度、降雨、紫外線欄位 (森林綠)"""
+    """【純空氣卡】只留 AQI 指標、空氣狀態"""
     reminder_text = get_warm_reminder(data, 'air')
     return {
       "type": "bubble", "size": "mega",
@@ -195,15 +185,9 @@ def create_pure_air_card(city_name, data):
       "body": {
         "type": "box", "layout": "vertical",
         "contents": [
-          {"type": "box", "layout": "horizontal", "contents": [
-              {"type": "text", "text": "📊 AQI 指標", "color": "#aaaaaa", "size": "sm"}, 
-              {"type": "text", "text": data['aqi'], "align": "end", "size": "md", "weight": "bold", "color": "#2a9d8f"}
-          ]},
+          {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "📊 AQI 指標", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": data['aqi'], "align": "end", "size": "md", "weight": "bold", "color": "#2a9d8f"}]},
           {"type": "separator", "margin": "md"},
-          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [
-              {"type": "text", "text": "🔍 空氣狀態", "color": "#aaaaaa", "size": "sm"}, 
-              {"type": "text", "text": data['aqi_status'], "align": "end", "size": "sm", "weight": "bold"}
-          ]},
+          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [{"type": "text", "text": "🔍 空氣狀態", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": data['aqi_status'], "align": "end", "size": "sm", "weight": "bold"}]},
           {"type": "separator", "margin": "lg"},
           {
             "type": "box", "layout": "vertical", "margin": "md", "backgroundColor": "#e8f5e9", "paddingAll": "md", "cornerRadius": "md",
@@ -217,7 +201,7 @@ def create_pure_air_card(city_name, data):
     }
 
 def create_pure_uv_card(city_name, data):
-    """【純紫外線卡】絕無天氣、降雨、空氣欄位 (炙熱橘)"""
+    """【純紫外線卡】只留紫外線指數、曝曬風險"""
     reminder_text = get_warm_reminder(data, 'uv')
     return {
       "type": "bubble", "size": "mega",
@@ -231,15 +215,9 @@ def create_pure_uv_card(city_name, data):
       "body": {
         "type": "box", "layout": "vertical",
         "contents": [
-          {"type": "box", "layout": "horizontal", "contents": [
-              {"type": "text", "text": "☀️ 紫外線指數", "color": "#aaaaaa", "size": "sm"}, 
-              {"type": "text", "text": data['uvi'], "align": "end", "size": "md", "weight": "bold", "color": "#e76f51"}
-          ]},
+          {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "☀️ 紫外線指數", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": data['uvi'], "align": "end", "size": "md", "weight": "bold", "color": "#e76f51"}]},
           {"type": "separator", "margin": "md"},
-          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [
-              {"type": "text", "text": "🛡️ 曝曬風險", "color": "#aaaaaa", "size": "sm"}, 
-              {"type": "text", "text": data['uvi_level'], "align": "end", "size": "sm", "weight": "bold"}
-          ]},
+          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [{"type": "text", "text": "🛡️ 曝曬風險", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": data['uvi_level'], "align": "end", "size": "sm", "weight": "bold"}]},
           {"type": "separator", "margin": "lg"},
           {
             "type": "box", "layout": "vertical", "margin": "md", "backgroundColor": "#fdf2e9", "paddingAll": "md", "cornerRadius": "md",
@@ -253,7 +231,7 @@ def create_pure_uv_card(city_name, data):
     }
 
 def generate_card_all(city_name, data):
-    """【綜合卡】依然保留全包欄位 (深灰色)"""
+    """【綜合氣象卡】依然保留完整全包資訊"""
     reminder_text = get_warm_reminder(data, 'all')
     return {
       "type": "bubble", "size": "mega",
@@ -289,7 +267,6 @@ def generate_card_all(city_name, data):
       }
     }
 
-
 # --- 6. Webhook ---
 @app.route("/webhook", methods=['POST'])
 def callback():
@@ -299,37 +276,30 @@ def callback():
     except InvalidSignatureError: abort(400)
     return 'OK'
 
-
-# --- 7. 核心：模糊感應與多輪獨立卡片路由引擎 (修復版) ---
+# --- 7. 路由核心控制 (打錯字已徹底修正) ---
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_input = event.message.text.strip()
     user_input_lower = user_input.lower()
     
-    # ─── 第一階段：模糊感應多輪導引問城市 ───
+    # ─── 第一階段引導 ───
     if user_input_lower in ["我要查氣象", "呼叫管家！我想看今日氣象圖卡", "查氣象", "綜合氣象"]:
         line_bot_api.reply_message(event.reply_token, TextMessage(text="☀️ 好喔！想要查詢哪一個縣市的『綜合氣象卡片』呢？\n(例如：台中、台北、高雄)"))
         return
-        
     elif any(k in user_input_lower for k in ["天氣", "氣溫", "溫度", "降雨", "今天天氣如何啊", "幾度"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
-            # 💡 提示使用者加上後綴，教他怎麼打字觸發
             line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n\n💬 請輸入：[城市名]+天氣\n(例如直接回覆：台南天氣、台北天氣)"))
             return
-            
     elif any(k in user_input_lower for k in ["空氣", "空氣品質", "aqi", "幫我看現在空氣品質好不好", "pm25"]):
-        if not any(key in user_input_lower for key in CITY_MAPPING.keys())_lower:
-            # 💡 提示使用者加上後綴，教他怎麼打字觸發
+        if not any(key in user_input_lower for key in CITY_MAPPING.keys()):  # 💡 這裡打錯字已成功修正！
             line_bot_api.reply_message(event.reply_token, TextMessage(text="🍃 收到！請問妳要看哪一個縣市的『空氣品質AQI』呢？\n\n💬 請輸入：[城市名]+空氣\n(例如直接回覆：台南空氣、台北空氣)"))
             return
-            
     elif any(k in user_input_lower for k in ["紫外線", "紫外線指數", "uv", "太陽好大！幫我查一下紫外線"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
-            # 💡 提示使用者加上後綴，教他怎麼打字觸發
             line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個縣市的『紫外線指數』呢？\n\n💬 請輸入：[城市名]+紫外線\n(例如直接回覆：台南紫外線、台北紫外線)"))
             return
 
-    # ─── 第二階段：解析輸入的字串裡是否有包含台灣縣市關鍵字 ───
+    # ─── 第二階段解析 ───
     target_city_key = None
     for key in CITY_MAPPING.keys():
         if key in user_input_lower:
@@ -346,24 +316,19 @@ def handle_message(event):
             "aqi": "讀取中", "aqi_status": "請稍後", "uvi": "0", "uvi_level": "一般"
         })
         
-        # ─── 精準產出『真正獨立、徹底拔除無關欄位』的 Flex Message 卡片 ───
-        
-        # 1. 輸出真正獨立的【空氣卡】
+        # ─── 真正的獨立路由判斷（這一次把無關資訊完全摘除了！） ───
         if any(k in user_input_lower for k in ["空氣", "aqi", "pm25"]):
             pure_contents = create_pure_air_card(target_county, city_weather)
             line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}空氣品質", contents=pure_contents))
             
-        # 2. 輸出真正獨立的【紫外線卡】
         elif any(k in user_input_lower for k in ["紫外線", "uv"]):
             pure_contents = create_pure_uv_card(target_county, city_weather)
             line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}紫外線指數", contents=pure_contents))
             
-        # 3. 輸出真正獨立的【天氣氣溫卡】
         elif any(k in user_input_lower for k in ["天氣", "溫度", "氣溫", "幾度", "降雨"]):
             pure_contents = create_pure_weather_card(target_county, city_weather)
             line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}天氣預報", contents=pure_contents))
             
-        # 4. 只打城市名（如「台南」），或指名要看氣象，一律給完整的【綜合氣象大圖卡】
         else:
             full_contents = generate_card_all(target_county, city_weather)
             line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}綜合氣象", contents=full_contents))
@@ -372,11 +337,11 @@ def handle_message(event):
         line_bot_api.reply_message(
             event.reply_token,
             TextMessage(text="呀！小管家看不懂這個指令耶～🤯\n\n"
-                             "請試著這樣對我打字喔：\n"
+                             "請直接點選下方【LINE選單】，或是試著這樣對我打字喔：\n"
                              "👉「台南天氣」 (看獨立天氣卡)\n"
                              "👉「台南空氣」 (看獨立空氣卡)\n"
                              "👉「台南紫外線」 (看獨立防曬卡)\n"
-                             "👉「台南」 (看綜合圖卡)")
+                             "👉 Bird「台南」 (看綜合圖卡)")
         )
 
 app.debug = False
