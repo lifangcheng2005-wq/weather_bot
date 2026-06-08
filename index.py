@@ -300,30 +300,36 @@ def callback():
     return 'OK'
 
 
-# --- 7. 路由核心控制 (精準對接更名後的獨立圖卡) ---
+# --- 7. 核心：模糊感應與多輪獨立卡片路由引擎 (修復版) ---
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_input = event.message.text.strip()
     user_input_lower = user_input.lower()
     
-    # 選單導引判斷
+    # ─── 第一階段：模糊感應多輪導引問城市 ───
     if user_input_lower in ["我要查氣象", "呼叫管家！我想看今日氣象圖卡", "查氣象", "綜合氣象"]:
         line_bot_api.reply_message(event.reply_token, TextMessage(text="☀️ 好喔！想要查詢哪一個縣市的『綜合氣象卡片』呢？\n(例如：台中、台北、高雄)"))
         return
+        
     elif any(k in user_input_lower for k in ["天氣", "氣溫", "溫度", "降雨", "今天天氣如何啊", "幾度"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(例如：台中、宜蘭、屏東)"))
+            # 💡 提示使用者加上後綴，教他怎麼打字觸發
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n\n💬 請輸入：[城市名]+天氣\n(例如直接回覆：台南天氣、台北天氣)"))
             return
+            
     elif any(k in user_input_lower for k in ["空氣", "空氣品質", "aqi", "幫我看現在空氣品質好不好", "pm25"]):
-        if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🍃 收到！請問妳要看哪一個縣市的『空氣品質AQI』呢？\n(example：新北、台南、馬祖)"))
+        if not any(key in user_input_lower for key in CITY_MAPPING.keys())_lower:
+            # 💡 提示使用者加上後綴，教他怎麼打字觸發
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🍃 收到！請問妳要看哪一個縣市的『空氣品質AQI』呢？\n\n💬 請輸入：[城市名]+空氣\n(例如直接回覆：台南空氣、台北空氣)"))
             return
+            
     elif any(k in user_input_lower for k in ["紫外線", "紫外線指數", "uv", "太陽好大！幫我查一下紫外線"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個縣市的『紫外線指數』呢？\n(example：彰化、澎湖、台北)"))
+            # 💡 提示使用者加上後綴，教他怎麼打字觸發
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個縣市的『紫外線指數』呢？\n\n💬 請輸入：[城市名]+紫外線\n(例如直接回覆：台南紫外線、台北紫外線)"))
             return
 
-    # 縣市解析
+    # ─── 第二階段：解析輸入的字串裡是否有包含台灣縣市關鍵字 ───
     target_city_key = None
     for key in CITY_MAPPING.keys():
         if key in user_input_lower:
@@ -340,29 +346,37 @@ def handle_message(event):
             "aqi": "讀取中", "aqi_status": "請稍後", "uvi": "0", "uvi_level": "一般"
         })
         
-        # ─── 呼叫全新獨立卡片 (強制刷新 JSON 骨架) ───
+        # ─── 精準產出『真正獨立、徹底拔除無關欄位』的 Flex Message 卡片 ───
         
-        # 1. 查空氣 -> 只餵 create_pure_air_card 骨架
+        # 1. 輸出真正獨立的【空氣卡】
         if any(k in user_input_lower for k in ["空氣", "aqi", "pm25"]):
             pure_contents = create_pure_air_card(target_county, city_weather)
             line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}空氣品質", contents=pure_contents))
             
-        # 2. 查紫外線 -> 只餵 create_pure_uv_card 骨架
+        # 2. 輸出真正獨立的【紫外線卡】
         elif any(k in user_input_lower for k in ["紫外線", "uv"]):
             pure_contents = create_pure_uv_card(target_county, city_weather)
             line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}紫外線指數", contents=pure_contents))
             
-        # 3. 查天氣 -> 只餵 create_pure_weather_card 骨架
+        # 3. 輸出真正獨立的【天氣氣溫卡】
         elif any(k in user_input_lower for k in ["天氣", "溫度", "氣溫", "幾度", "降雨"]):
             pure_contents = create_pure_weather_card(target_county, city_weather)
             line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}天氣預報", contents=pure_contents))
             
-        # 4. 盲打或查綜合氣象 -> 給 generate_card_all 全套大圖卡
+        # 4. 只打城市名（如「台南」），或指名要看氣象，一律給完整的【綜合氣象大圖卡】
         else:
             full_contents = generate_card_all(target_county, city_weather)
             line_bot_api.reply_message(event.reply_token, FlexSendMessage(alt_text=f"{target_county}綜合氣象", contents=full_contents))
             
     else:
-        line_bot_api.reply_message(event.reply_token, TextMessage(text="請輸入【城市 + 想查的項目】，管家隨時待命！"))
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextMessage(text="呀！小管家看不懂這個指令耶～🤯\n\n"
+                             "請試著這樣對我打字喔：\n"
+                             "👉「台南天氣」 (看獨立天氣卡)\n"
+                             "👉「台南空氣」 (看獨立空氣卡)\n"
+                             "👉「台南紫外線」 (看獨立防曬卡)\n"
+                             "👉「台南」 (看綜合圖卡)")
+        )
 
 app.debug = False
