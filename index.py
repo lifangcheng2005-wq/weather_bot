@@ -23,9 +23,9 @@ cache = {
     "data": None,
     "last_updated": 0
 }
-CACHE_DURATION = 1200  # 快取 20 分鐘
+CACHE_DURATION = 1200  # 快取 20 分鐘，避免頻繁呼叫 API 被封鎖 IP
 
-# 載入全台城市對照表
+# 載入全台城市對照表 JSON
 with open("city_mapping.json", "r", encoding="utf-8") as f:
     CITY_MAPPING = json.load(f)
 
@@ -33,21 +33,21 @@ with open("city_mapping.json", "r", encoding="utf-8") as f:
 def fetch_all_weather_data():
     current_time = time.time()
     
-    # 若快取未過期，直接回傳
+    # 若快取未過期，直接回傳快取資料，加速回應
     if cache["data"] and (current_time - cache["last_updated"] < CACHE_DURATION):
         return cache["data"]
 
-    print("⚡ 正在更新全台縣市 JSON 資料...")
+    print("⚡ 正在向政府 API 更新全台縣市 JSON 資料...")
     integrated_data = {}
 
-    # A. 撈取氣象署全台天氣預報
+    # A. 撈取氣象署全台天氣預報 JSON
     try:
         cwa_url = f"https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization={CWA_API_KEY}&format=JSON"
         cwa_res = requests.get(cwa_url, timeout=10).json()
         location_list = cwa_res.get("records", {}).get("location", [])
         
         for loc in location_list:
-            # 關鍵防護：統一將政府可能回傳的 "台" 轉為 "臺"
+            # 防護：將政府回傳的 "台" 統一轉為 "臺"
             cname = loc.get("locationName", "").replace("台", "臺")
             weather_elements = loc.get("weatherElement", [])
             
@@ -63,7 +63,7 @@ def fetch_all_weather_data():
     except Exception as e:
         print(f"❌ 氣象署 API 異常: {e}")
 
-    # B. 撈取環境部全台 AQI
+    # B. 撈取環境部全台 AQI JSON
     try:
         aqi_url = f"https://data.moenv.gov.tw/api/v2/aqx_p_43?api_key={MOENV_API_KEY}&format=json"
         aqi_res = requests.get(aqi_url, timeout=10).json()
@@ -81,7 +81,7 @@ def fetch_all_weather_data():
     except Exception as e:
         print(f"❌ 環境部 AQI API 異常: {e}")
 
-    # C. 撈取環境部全台 紫外線 UVI
+    # C. 撈取環境部全台 紫外線 UVI JSON
     try:
         uv_url = f"https://data.moenv.gov.tw/api/v2/uv_p_01?api_key={MOENV_API_KEY}&format=json"
         uv_res = requests.get(uv_url, timeout=10).json()
@@ -110,13 +110,14 @@ def fetch_all_weather_data():
     except Exception as e:
         print(f"❌ 環境部 UVI API 異常: {e}")
 
+    # 如果成功整合到資料，存入記憶體快取
     if integrated_data:
         cache["data"] = integrated_data
         cache["last_updated"] = current_time
         
     return integrated_data
 
-# --- 4. 生成 LINE Flex Message ---
+# --- 4. 生成 LINE Flex Message UI (JSON 驅動格式) ---
 def generate_flex_message(city_name, data):
     return {
       "type": "bubble",
@@ -172,7 +173,7 @@ def generate_flex_message(city_name, data):
       }
     }
 
-# --- 5. Webhook 路由 ---
+# --- 5. Webhook 接收端（網址後端綁定 /webhook） ---
 @app.route("/webhook", methods=['POST'])
 def callback():
     signature = request.headers.get('X-Line-Signature', '')
@@ -187,17 +188,21 @@ def callback():
 def handle_message(event):
     user_input = event.message.text.strip()
     
+    # 檢查輸入是否在全台 22 縣市對照表內
     if user_input in CITY_MAPPING:
         city_info = CITY_MAPPING[user_input]
         target_county = city_info["county"]
         
+        # 撈取並整合政府 JSON 資料
         all_data = fetch_all_weather_data()
         
+        # 後端Fallback機制：若 API 漏抓，提供安全預設值，確保機器人絕對不會吐出錯誤
         city_weather = all_data.get(target_county, {
             "wx": "情報更新中", "pop": "0", "min_t": "--", "max_t": "--",
             "aqi": "讀取中", "aqi_status": "請稍後", "uvi": "0", "uvi_level": "一般"
         })
         
+        # 渲染 Flex Message
         flex_contents = generate_flex_message(target_county, city_weather)
         
         line_bot_api.reply_message(
@@ -205,10 +210,10 @@ def handle_message(event):
             FlexSendMessage(alt_text=f"{target_county}天氣預報", contents=flex_contents)
         )
     else:
+        # 友善導引提示
         line_bot_api.reply_message(
             event.reply_token,
-            TextMessage(text="請輸入台灣任意縣市名稱（例如：花蓮、澎湖、新北），馬上幫妳查全方位氣象！")
+            TextMessage(text="請輸入台灣任意縣市名稱（例如：台中、高雄、花蓮、澎湖），氣象小管家馬上幫妳查！")
         )
 
-# 為了讓 Vercel 順利將 Flask 當作 Serverless Function 執行
 app.debug = False
