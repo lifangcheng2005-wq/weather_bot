@@ -47,7 +47,8 @@ def fetch_all_weather_data():
         location_list = cwa_res.get("records", {}).get("location", [])
         
         for loc in location_list:
-            cname = loc.get("locationName", "")
+            # 關鍵防護：統一將政府可能回傳的 "台" 轉為 "臺"
+            cname = loc.get("locationName", "").replace("台", "臺")
             weather_elements = loc.get("weatherElement", [])
             
             wx = weather_elements[0].get("time", [{}])[0].get("parameter", {}).get("parameterName", "情報獲取中")
@@ -69,7 +70,7 @@ def fetch_all_weather_data():
         aqi_records = aqi_res.get("records", [])
         
         for record in aqi_records:
-            county = record.get("county", "")
+            county = record.get("county", "").replace("台", "臺") # 統一轉臺
             sitename = record.get("sitename", "")
             
             for k, v in CITY_MAPPING.items():
@@ -87,7 +88,7 @@ def fetch_all_weather_data():
         uv_records = uv_res.get("records", [])
         
         for record in uv_records:
-            county = record.get("county", "")
+            county = record.get("county", "").replace("台", "臺") # 統一轉臺
             sitename = record.get("sitename", "")
             
             for k, v in CITY_MAPPING.items():

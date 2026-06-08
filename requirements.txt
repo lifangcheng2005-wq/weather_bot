@@ -1,3 +1,5 @@
 flask
 requests
 line-bot-sdk
+gunicorn
+werkzeug
