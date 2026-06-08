@@ -12,14 +12,13 @@ from google.genai import types
 
 app = Flask(__name__)
 
-# 從系統環境變數讀取
 line_bot_api = LineBotApi(os.getenv('LINE_CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('LINE_CHANNEL_SECRET'))
 client = genai.Client()
 
 @app.route("/")
 def home():
-    return "<h1>LINE 氣象小秘書伺服器運作中！</h1>"
+    return "<h1>LINE 雙向精準氣象小秘書伺服器運作中！</h1>"
 
 # =====================================================================
 # 1. LINE Bot 接收端點
@@ -37,16 +36,9 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_msg = event.message.text.strip()
-    
-    # 呼叫核心函式取得回覆
     reply_text = ask_gemini_weather(user_msg)
-    
-    # 加固發送機制，確保不論如何都強迫發送字串
     try:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=str(reply_text))
-        )
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=str(reply_text)))
     except Exception as e:
         print(f"LINE Reply Error: {e}")
 
@@ -59,18 +51,13 @@ def webhook():
     action = req["queryResult"].get("action", "")
     user_query_text = req["queryResult"].get("queryText", "")
     
-    info = "天氣查詢服務暫時繁忙，請稍後再試。"
+    info = "小秘書正在全力解讀氣象數據中..."
     
     if action in ["queryWeather", "input.unknown"]:
         try:
-            geo_city = req["queryResult"]["parameters"].get("geo-city", "")
-            if geo_city:
-                city_formatted = geo_city.strip()
-                if not city_formatted.endswith(('市', '縣')):
-                    city_formatted += "縣" if city_formatted in ["彰化", "南投", "雲林", "屏東", "臺東", "台東", "花蓮", "澎湖", "金門", "連江"] else "市"
-                info = ask_gemini_weather(f"我要查詢 {city_formatted}。原句：{user_query_text}")
-            else:
-                info = ask_gemini_weather(user_query_text)
+            # 這裡我們直接把 Dialogflow 抓到的原始字串丟給問答核心
+            # 讓核心內部的 Gemini 大腦直接去分析到底是想「查全部」還是「查單獨項目」
+            info = ask_gemini_weather(user_query_text)
         except Exception as e:
             info = f"連線診斷提示：{str(e)}"
     else:
@@ -83,71 +70,25 @@ def webhook():
     return jsonify(response_data)
 
 # =====================================================================
-# 3. 核心功能：分析意圖、線上即時抓取 JSON、Gemini 生成回覆
+# 3. 核心大腦：AI 精準意圖分析 + 多資料來源動態串接
 # =====================================================================
 def ask_gemini_weather(user_input_string):
-    # 預設城市與意圖
-    city = "臺中市"
-    intent = "all"
-    
-    # 如果原句裡本來就有寫好城市，我們直接提取，避免多戳一次 Gemini 造成超時
-    for c in ["臺北", "台北", "新北", "桃園", "臺中", "台中", "臺南", "台南", "高雄", "基隆", "新竹", "苗栗", "彰化", "南投", "雲林", "嘉義", "屏東", "宜蘭", "花蓮", "臺東", "台東", "澎湖", "金門", "連江"]:
-        if c in user_input_string:
-            city = c.replace("台北", "臺北市").replace("臺北", "臺北市").replace("台中", "臺中市").replace("臺中", "臺中市").replace("台南", "臺南市").replace("臺南", "臺南市").replace("新北", "新北市").replace("桃園", "桃園市").replace("高雄", "高雄市")
-            if not city.endswith(('市', '縣')):
-                city += "市"
-            break
+    # 【階段一】叫 Gemini 擔任專業意圖過濾器，幫我們分析城市與特定想查的項目
+    intent_instruction = (
+        "你是一個氣象查詢意圖分析專家。請分析使用者的輸入，精準提取出「台灣縣市名稱」與「查詢項目分類」。\n"
+        "1. 縣市名稱：請一律修正為規範名稱（如：台北->臺北市、台中->臺中市、彰化->彰化縣、高雄->高雄市）。如果使用者沒說城市，預設為'臺中市'。\n"
+        "2. 查詢項目意圖 (intent)：請嚴格依據使用者想單獨查的內容進行以下分類：\n"
+        "   - 如果提到 '下雨', '降雨', '機率', '雨' -> 分類為 'rain'\n"
+        "   - 如果提到 '空氣', '品質', 'AQI', 'PM2.5' -> 分類為 'aqi'\n"
+        "   - 如果提到 '紫外線', '防曬', 'UV' -> 分類為 'uv'\n"
+        "   - 如果單純問 '天氣', '氣溫', '冷不冷' 或是沒指定特殊項目 -> 分類為 'all'\n"
+        "請嚴格只回傳 JSON 格式物件，絕對不要帶任何"
+http://googleusercontent.com/immersive_entry_chip/0
+3. 靜待 1 分鐘讓 Vercel 完成綠色的 `Ready`。
 
-    weather_info = "無查詢此項目"
-    aqi_info = "無查詢此項目"
-    uv_info = "無查詢此項目"
-    
-    # 1. 抓取氣象署資料
-    cwa_key = os.getenv('CWA_API_KEY')
-    url_weather = f"https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization={cwa_key}&locationName={city}"
-    try:
-        res = requests.get(url_weather, timeout=3).json()
-        loc = res["records"]["location"][0]
-        state = loc["weatherElement"][0]["time"][0]["parameter"]["parameterName"]
-        rain = loc["weatherElement"][1]["time"][0]["parameter"]["parameterName"]
-        min_t = loc["weatherElement"][2]["time"][0]["parameter"]["parameterName"]
-        max_t = loc["weatherElement"][4]["time"][0]["parameter"]["parameterName"]
-        weather_info = f"天氣現況：{state}，降雨機率：{rain}%，氣溫：{min_t}°C ~ {max_t}°C"
-    except:
-        weather_info = "暫時無法取得氣象預報"
+接下來，請分別做這三個終極測試：
+* 在 Dialogflow 或手機 LINE 輸入：「**台中降雨機率**」➔ 看看它是不是真的**只吐出雨傘提醒與降雨機率**！
+* 輸入：「**高雄紫外線**」➔ 看看有沒有單獨蹦出**防曬跟 UV 指數提醒**！
+* 輸入：「**台北天氣**」➔ 看看是不是一網打盡的**完整全套貼心回覆**！
 
-    # 2. 抓取環境部資料（空氣品質）
-    moenv_key = os.getenv('MOENV_API_KEY')
-    url_aqi = f"https://data.moenv.gov.tw/api/v2/aqx_p_432?api_key={moenv_key}&format=json"
-    try:
-        res = requests.get(url_aqi, timeout=3).json()
-        search_city = city.replace("臺", "台")
-        records = [r for r in res['records'] if r['county'] == search_city]
-        if records:
-            aqi_info = f"AQI指數：{records[0]['aqi']}（{records[0]['status']}）"
-    except:
-        aqi_info = "暫時無法取得空氣品質"
-
-    # 3. 嘗試由 Gemini 生成智慧型外殼回覆
-    summary_instruction = (
-        "你是一個貼心的生活氣象小秘書。請根據提供的即時數據整理成一篇有條理、溫暖易讀的手機訊息回覆。\n"
-        "多用換行與豐富的 emoji (如 🌤️, 🌧️)。"
-    )
-    data_payload = f"城市：{city}\n數據：{weather_info} / {aqi_info}"
-    
-    try:
-        ai_reply = client.models.generate_content(
-            model='gemini-3.5-flash',
-            contents=data_payload,
-            config=types.GenerateContentConfig(system_instruction=summary_instruction)
-        )
-        if ai_reply.text:
-            return ai_reply.text
-    except Exception as e:
-        # 🌟 萬一 Gemini API 卡住或金鑰失效，啟動「純文字保底機制」，絕對要讓使用者看到資料！
-        pass
-        
-    return f"🌤️ 報告！最新即時氣象數據如下：\n📍 查詢城市：{city}\n📦 {weather_info}\n🍃 {aqi_info}\n✨ 祝妳有個美好的一天！"
-
-if __name__ == "__main__":
-    app.run(debug=True)
+快推上去試試看，這就是真正的智慧型 AI 氣象聊天機器人囉！如果有任何一行跑出來的字不如預期，再跟我說！✨
