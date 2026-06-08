@@ -128,8 +128,7 @@ def fetch_all_weather_data():
         cache["last_updated"] = current_time
     return integrated_data
 
-
-# --- 5. 💬 提醒字句海量擴充版 (加入超多隨機俏皮生活貼心金句) ---
+# --- 5. 隨機俏皮生活貼心提醒 ---
 def get_warm_reminder(data, query_type):
     try: pop_val = int(data['pop'])
     except: pop_val = 0
@@ -140,124 +139,108 @@ def get_warm_reminder(data, query_type):
     
     if query_type in ['all', 'weather']:
         if pop_val >= 70:
-            reminders.append(random.choice([
-                "降雨機率高達分之裝熟！出門沒帶傘的話，妳就準備在街上跳曼波求雨了吧～☔",
-                "今天降雨機率太有誠意了，出門一定要抓一把傘，別讓自己變成現撈的落湯雞捏！🐔",
-                "偵測到天空今天走『愛哭鬼』路線，降雨機率直接灌頂！沒帶雨具妳會哭，真的！🥺",
-                "外面隨時會倒大水！聽管家的話把傘拿好，柏油路今天不是很想跟妳摔車貼貼喔～🚗"
-            ]))
+            reminders.append(random.choice(["降雨機率高達分之裝熟！出門沒帶傘的話，妳就準備在街上跳曼波求雨了吧～☔", "今天降雨機率太有誠意了，出門一定要抓一把傘，別讓自己變成現撈的落湯雞捏！🐔"]))
         elif pop_val >= 40:
-            reminders.append(random.choice([
-                "今天的天空有點傲嬌，降雨機率半吊子，折疊傘還是塞進包包吧，防呆用！🎒",
-                "雨神今天可能心情好，降雨機率有一半！賭一把不帶傘？我賭妳會輸，快去拿傘！🔮",
-                "天空陰陰的像在生悶氣，雖然還沒下，但乖乖帶把傘總比在路邊淋雨當文藝女主角好吧？🎬"
-            ]))
+            reminders.append("今天的天空有點傲嬌，降雨機率半吊子，折疊傘還是塞進包包吧！🎒")
         elif "雨" in data['wx']:
-            reminders.append(random.choice([
-                "外面現在正在下雨！開車騎車慢一點，路上小心打滑，衣服濕了會感冒的捏！🌧️",
-                "嘩啦啦啦～雨滴正在唱歌。聽管話，乖乖待在室內，別出去外面瘋狂奔跑啦～🏡"
-            ]))
+            reminders.append("外面現在正在下雨！開車騎車慢一點，柏油路今天不是很想跟妳貼貼喔～🚗")
         else:
-            reminders.append(random.choice([
-                "目前看來是不帶傘也穩過的一天！快出門去踩踩陽光，別把自己曬發霉啦～☀️",
-                "天氣晴朗小福星！這天氣完美到不出去喝杯奶茶都對不起自己的扣達了！🥤",
-                "偵測到晴天 buff 已疊滿！還不快出去玩，要把自己當作馬鈴薯種在沙發上嗎？🥔",
-                "天空乾乾淨淨，完全不用帶傘！是個適合拍美照發限動的完美日子，出發囉！📸"
-            ]))
+            reminders.append(random.choice(["目前看來是不帶傘也穩過的一天！快出門別發霉啦～☀️", "天氣晴朗小福星！這天氣完美到不出去喝杯奶茶都對不起自己的扣達了！🥤"]))
 
     if query_type in ['all', 'air']:
         if "普通" in aqi_status:
-            reminders.append(random.choice([
-                "今天的空氣雖然及格但很邊緣，過敏小可憐們出門記得把口罩戴好，別一直打噴嚏！🤧",
-                "空氣指標正在走鋼索，防禦力有點低。過敏星人如果不想擤衛生紙到鼻子破皮，乖乖戴口罩！🧻"
-            ]))
+            reminders.append(random.choice(["今天的空氣雖然及格但很邊緣，過敏小可憐們出門記得把口罩戴好！🤧", "空氣指標正在走鋼索，過敏星人如果不想擤衛生紙到鼻子破皮，乖乖戴口罩！🧻"]))
         elif "不健康" in aqi_status or "對敏感族群" in aqi_status:
-            reminders.append(random.choice([
-                "今天窗外空氣有點『有毒』！乖，暫時別去外面瘋狂跑步，口罩快拉好，保護好妳高貴的肺！⚠️",
-                "空氣品質正在鬧脾氣！過敏星人今天嚴禁開啟人體清淨機模式，沒事多待在室內修仙吧！🔮",
-                "警報！外面的空氣充滿迷霧，這不是仙境是污染！快把口罩戴上，拒絕當人體吸塵器！👺"
-            ]))
+            reminders.append(random.choice(["今天窗外空氣有點『有毒』！口罩快拉好，保護好妳高貴的肺！⚠️", "空氣品質正在鬧脾氣！過敏星人沒事多待在室內修仙吧！🔮"]))
         else:
-            reminders.append(random.choice([
-                "今天的空氣乾淨到像在清境農場！趕快大力吸三口，免費的奢華空氣不吸白不吸～🍃",
-                "PM2.5 今天集體放假去了！空氣超級無敵好，家裡窗戶快打開通風一波～🪟",
-                "今天的空氣品質是極品！吸一口神清氣爽，吸兩口考試都考一百分啦！💯"
-            ]))
+            reminders.append("今天的空氣乾淨到像在清境農場！趕快大力吸三口，免費的奢華空氣不吸白不吸～🍃")
 
     if query_type in ['all', 'uv']:
         if uvi_val >= 8:
-            reminders.append(random.choice([
-                "紫外線指數爆表啦！今天太陽公公沒在跟妳客氣的，防曬乳塗厚一點，不然出門一趟直接變黑炭！🔥",
-                "這紫外線是要把人烤熟嗎？防曬、墨鏡、遮陽傘快使出三防防禦，不要跟太陽硬碰硬！🕶️",
-                "吸血鬼警告！外面的太陽會把人融化，非必要請勿在陽光下曝曬，妳不想變成行走的烤肉吧？🍖"
-            ]))
+            reminders.append(random.choice(["紫外線指數爆表啦！防曬乳塗厚一點，不然出門一趟直接變黑炭！🔥", "這紫外線是要把人烤熟嗎？防曬、墨鏡、遮陽傘快使出三防防禦！🕶️"]))
         elif uvi_val >= 5:
-            reminders.append(random.choice([
-                "紫外線有點微微囂張喔，雖然沒有到融化的程度，但美白很貴的，防曬還是要擦一下啦！🧴",
-                "陽光普照但帶點小惡意，紫外線指數正在蠢蠢欲動，出門陰影處多走走，別被曬黑了！🐾"
-            ]))
+            reminders.append("紫外線有點微微囂張喔，雖然沒有到融化的程度，打傘美白防曬不可少！🧴")
         else:
-            reminders.append(random.choice([
-                "今天的紫外線很善良，頂多幫妳補補維生素D，不用怕被曬成黑炭，放心出去玩！☀️",
-                "陽光很溫柔，紫外線今天處於休眠狀態，是個適合在草地上滾來滾去的好日子！🌱"
-            ]))
+            reminders.append("今天的紫外線很善良，頂多幫妳補補維生素D，放心出去玩！☀️")
 
     return " \n".join(reminders)
 
 
-# --- 6. 🛠️ 視覺重構：大字體單頁說明書 (新增綜合卡片、按鈕質感升級) ---
+# --- 6. 🛠️ 視覺重構：大字體單頁說明書 (新增選單外部連結功能說明) ---
 
 def generate_guide_card():
-    """💡 調整亮點：字級加大好讀、補上綜合卡、底部 GPS 按鈕改為高級皇家藍"""
     return {
       "type": "bubble", "size": "mega",
       "header": {
         "type": "box", "layout": "vertical", "backgroundColor": "#8338ec", "paddingAll": "lg",
         "contents": [
           {"type": "text", "text": "📖 氣象小管家功能說明書", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
-          {"type": "text", "text": "簡單四招，輕鬆調教！", "weight": "bold", "size": "xl", "color": "#FFFFFF", "margin": "sm"}
+          {"type": "text", "text": "👀 請對照下方選單的圖示功能", "weight": "bold", "size": "xl", "color": "#FFFFFF", "margin": "sm"}
         ]
       },
       "body": {
-        "type": "box", "layout": "vertical", "spacing": "lg", "paddingAll": "lg",
+        "type": "box", "layout": "vertical", "spacing": "md", "paddingAll": "lg",
         "contents": [
-          {"type": "text", "text": "點選下方【圖文選單】或【直接輸入文字】都可以呼叫我喔！請試著這樣對我打字：", "size": "sm", "color": "#444444", "wrap": True},
+          {"type": "text", "text": "直接點擊下方的【圖文選單按鈕】，管家會啟動導引；您也可以直接使用【手打輸入】快速查詢：", "size": "sm", "color": "#444444", "wrap": True},
           
-          # 項目 1：綜合卡片 (新補上)
+          # 項目 1：綜合卡
           {"type": "box", "layout": "horizontal", "spacing": "md", "contents": [
-              {"type": "box", "layout": "vertical", "backgroundColor": "#272c35", "cornerRadius": "md", "paddingAll": "xs", "width": "75px", "contents": [
-                  {"type": "text", "text": "綜合卡", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
+              {"type": "box", "layout": "vertical", "backgroundColor": "#272c35", "cornerRadius": "md", "paddingAll": "xs", "width": "90px", "contents": [
+                  {"type": "text", "text": "🌤️ 綜合卡", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
               ]},
-              {"type": "text", "text": "手打：直接輸入「城市名稱」(如: 台中)\n即可獲得包含全部氣象資訊的全套綜合大圖卡", "size": "sm", "color": "#555555", "wrap": True}
+              {"type": "text", "text": "點擊該圖示，或手打輸入「城市」(如: 台中)，獲取包含全套資訊的【綜合大圖卡】。", "size": "sm", "color": "#555555", "wrap": True}
           ]},
 
-          # 項目 2：天氣
+          # 項目 2：天氣卡
           {"type": "box", "layout": "horizontal", "spacing": "md", "contents": [
-              {"type": "box", "layout": "vertical", "backgroundColor": "#3a86ff", "cornerRadius": "md", "paddingAll": "xs", "width": "75px", "contents": [
-                  {"type": "text", "text": "查天氣", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
+              {"type": "box", "layout": "vertical", "backgroundColor": "#3a86ff", "cornerRadius": "md", "paddingAll": "xs", "width": "90px", "contents": [
+                  {"type": "text", "text": "🌡️ 查天氣", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
               ]},
-              {"type": "text", "text": "手打：城市+天氣 (如: 台中天氣)\n即可獲得只留下氣溫、降雨的獨立卡片", "size": "sm", "color": "#555555", "wrap": True}
+              {"type": "text", "text": "點擊該圖示，或手打「城市+天氣」(如: 台中天氣)，獲取過濾後的【獨立天氣預報卡】。", "size": "sm", "color": "#555555", "wrap": True}
           ]},
           
-          # 項目 3：空氣
+          # 項目 3：空氣卡
           {"type": "box", "layout": "horizontal", "spacing": "md", "contents": [
-              {"type": "box", "layout": "vertical", "backgroundColor": "#2a9d8f", "cornerRadius": "md", "paddingAll": "xs", "width": "75px", "contents": [
-                  {"type": "text", "text": "查空氣", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
+              {"type": "box", "layout": "vertical", "backgroundColor": "#2a9d8f", "cornerRadius": "md", "paddingAll": "xs", "width": "90px", "contents": [
+                  {"type": "text", "text": "🌀 監測空品", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
               ]},
-              {"type": "text", "text": "手打：城市+空氣 (如: 台南空氣)\n即可獲得只留下 AQI 指標的獨立卡片", "size": "sm", "color": "#555555", "wrap": True}
+              {"type": "text", "text": "點擊該圖示，或手打「城市+空氣」(如: 台南空氣)，獲取只看 AQI 的【獨立空氣卡】。", "size": "sm", "color": "#555555", "wrap": True}
           ]},
           
-          # 項目 4：紫外線
+          # 項目 4：紫外線卡
           {"type": "box", "layout": "horizontal", "spacing": "md", "contents": [
-              {"type": "box", "layout": "vertical", "backgroundColor": "#e76f51", "cornerRadius": "md", "paddingAll": "xs", "width": "75px", "contents": [
-                  {"type": "text", "text": "防曬卡", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
+              {"type": "box", "layout": "vertical", "backgroundColor": "#e76f51", "cornerRadius": "md", "paddingAll": "xs", "width": "90px", "contents": [
+                  {"type": "text", "text": "☀️ 抗陽防曬", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
               ]},
-              {"type": "text", "text": "手打：城市+紫外線 (如: 台北uv)\n即可獲得只留下紫外線指數的獨立卡片", "size": "sm", "color": "#555555", "wrap": True}
+              {"type": "text", "text": "點擊該圖示，或手打「城市+紫外線」(如: 台北uv)，獲取專屬防曬指數的【獨立防曬卡】。", "size": "sm", "color": "#555555", "wrap": True}
+          ]},
+
+          # 項目 5：新增選單右上/右下的官方網站連結解說
+          {"type": "box", "layout": "horizontal", "spacing": "md", "contents": [
+              {"type": "box", "layout": "vertical", "backgroundColor": "#457b9d", "cornerRadius": "md", "paddingAll": "xs", "width": "90px", "contents": [
+                  {"type": "text", "text": "🔗 官方平台", "color": "#FFFFFF", "size": "sm", "weight": "bold", "align": "center"}
+              ]},
+              {"type": "text", "text": "點擊選單右側按鈕，或下方快捷鍵，可直接連線至【中央氣象署】與【環境部全球資訊網】觀看一手資料。", "size": "sm", "color": "#555555", "wrap": True}
           ]},
           
           {"type": "separator", "margin": "md"},
           
-          # 🎨 按鈕配色升級：更換為極具質感的皇家深邃藍 (#1d3557)
+          # 🔗 新增：中央氣象署與環境部的官方 WMS 快速外連網頁連結按鈕
+          {
+            "type": "box", "layout": "horizontal", "spacing": "md", "margin": "sm",
+            "contents": [
+              {
+                "type": "button", "style": "secondary", "height": "sm", "color": "#457b9d",
+                "action": {"type": "uri", "label": "🌐 中央氣象署", "uri": "https://www.cwa.gov.tw/"}
+              },
+              {
+                "type": "button", "style": "secondary", "height": "sm", "color": "#2a9d8f",
+                "action": {"type": "uri", "label": "🌐 環境部官網", "uri": "https://www.moenv.gov.tw/"}
+              }
+            ]
+          },
+
+          # 皇家深邃藍 GPS 按鈕
           {
             "type": "button", "style": "primary", "color": "#1d3557", "height": "sm", "margin": "sm",
             "action": {
@@ -286,7 +269,8 @@ def create_pure_weather_card(city_name, data):
         "contents": [
           {"type": "box", "layout": "horizontal", "contents": [{"type": "text", "text": "☁️ 天氣現況", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": data['wx'], "align": "end", "size": "sm", "weight": "bold"}]},
           {"type": "separator", "margin": "md"},
-          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [{"type": "text", "text": "🌡️ 預測氣溫", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": f"{data['min_t']}°C ~ {data['max_t']}°C", "align": "end", "size": "sm", "weight": "bold"}]},
+          {"type": "box", "layout": "horizontal", "margin": "md", "contents": [{"type": "text", "text": "🌡️ 預測氣溫", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": f"{data['min_t']}°C ~ {data['max_t']}°C", "align": "end", "size": "sm", "weight": "bold"}
+          ]},
           {"type": "separator", "margin": "md"},
           {"type": "box", "layout": "horizontal", "margin": "md", "contents": [{"type": "text", "text": "💧 降雨機率", "color": "#aaaaaa", "size": "sm"}, {"type": "text", "text": f"{data['pop']}%", "align": "end", "size": "sm", "color": "#0077b6", "weight": "bold"}]},
           {"type": "separator", "margin": "lg"},
@@ -457,7 +441,7 @@ def handle_text_message(event):
     elif any(k in user_input_lower for k in ["天氣", "氣溫", "溫度", "降雨", "今天天氣如何啊", "幾度"]):
         if not any(key in user_input_lower for key in CITY_MAPPING.keys()):
             set_user_state(user_id, "weather")
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(例如：台中定位、宜蘭、屏東)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(例如：台中、宜蘭、屏東)\n\n📍 提示：也可以直接發送您的「GPS位置」給管家喔！"))
             return
             
     elif any(k in user_input_lower for k in ["空氣", "空氣品質", "aqi", "幫我看現在空氣品質好不好", "pm25"]):
