@@ -26,7 +26,7 @@ cache = {
 }
 CACHE_DURATION = 1200  # 快取 20 分鐘
 
-# 載入全台城市對照表 JSON[cite: 2]
+# 載入全台城市對照表 JSON
 with open("city_mapping.json", "r", encoding="utf-8") as f:
     CITY_MAPPING = json.load(f)
 
@@ -40,7 +40,7 @@ def fetch_all_weather_data():
     print("⚡ 正在向政府 API 更新全台縣市 JSON 資料...")
     integrated_data = {}
 
-    # A. 撈取氣象署全台天氣預報 JSON[cite: 2]
+    # A. 撈取氣象署全台天氣預報 JSON
     try:
         cwa_url = f"https://opendata.cwa.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization={CWA_API_KEY}&format=JSON"
         cwa_res = requests.get(cwa_url, timeout=10).json()
@@ -62,7 +62,7 @@ def fetch_all_weather_data():
     except Exception as e:
         print(f"❌ 氣象署 API 異常: {e}")
 
-    # B. 撈取環境部全台 AQI JSON[cite: 2]
+    # B. 撈取環境部全台 AQI JSON
     try:
         aqi_url = f"https://data.moenv.gov.tw/api/v2/aqx_p_43?api_key={MOENV_API_KEY}&format=json"
         aqi_res = requests.get(aqi_url, timeout=10).json()
@@ -80,7 +80,7 @@ def fetch_all_weather_data():
     except Exception as e:
         print(f"❌ 環境部 AQI API 異常: {e}")
 
-    # C. 撈取環境部全台 紫外線 UVI JSON[cite: 2]
+    # C. 撈取環境部全台 紫外線 UVI JSON
     try:
         uv_url = f"https://data.moenv.gov.tw/api/v2/uv_p_01?api_key={MOENV_API_KEY}&format=json"
         uv_res = requests.get(uv_url, timeout=10).json()
@@ -190,10 +190,10 @@ def get_warm_reminder(data, query_type):
     return " \n".join(reminders)
 
 
-# --- 5. 精準欄位獨立！四大 Flex Message 卡片工廠 ---
+# --- 5. 徹底分離！四大 Flex Message 卡片工廠 (已刪除不相關欄位) ---
 
 def generate_card_all(city_name, data):
-    """卡片1：綜合氣象大圖卡 (包含完整欄位，深灰色主題)"""
+    """卡片1：綜合氣象大圖卡 (保留完整全部資訊)"""
     reminder_text = get_warm_reminder(data, 'all')
     return {
       "type": "bubble", "size": "mega",
@@ -230,14 +230,14 @@ def generate_card_all(city_name, data):
     }
 
 def generate_card_weather(city_name, data):
-    """卡片2：獨立天氣卡 (拔除空氣、紫外線！只留天氣、氣溫、降雨，晴空藍主題)"""
+    """卡片2：獨立天氣卡 (❌已刪除空氣與紫外線！只留下天氣、氣溫、降雨)"""
     reminder_text = get_warm_reminder(data, 'weather')
     return {
       "type": "bubble", "size": "mega",
       "header": {
         "type": "box", "layout": "vertical", "backgroundColor": "#3a86ff",
         "contents": [
-          {"type": "text", "text": "🌡️ 獨立天氣與氣溫觀測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
+          {"type": "text", "text": "編號 1 號 🌡️ 獨立天氣與氣溫觀測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
           {"type": "text", "text": city_name, "weight": "bold", "size": "xxl", "color": "#FFFFFF", "margin": "md"}
         ]
       },
@@ -262,14 +262,14 @@ def generate_card_weather(city_name, data):
     }
 
 def generate_card_air(city_name, data):
-    """卡片3：獨立空氣卡 (拔除天氣、氣溫、紫外線！只留 AQI 狀態，森林綠主題)"""
+    """卡片3：獨立空氣卡 (❌已刪除天氣、氣溫、降雨、紫外線！只留 AQI)"""
     reminder_text = get_warm_reminder(data, 'air')
     return {
       "type": "bubble", "size": "mega",
       "header": {
         "type": "box", "layout": "vertical", "backgroundColor": "#2a9d8f",
         "contents": [
-          {"type": "text", "text": "🍃 獨立空氣品質監測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
+          {"type": "text", "text": "編號 2 號 🍃 獨立空氣品質監測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
           {"type": "text", "text": city_name, "weight": "bold", "size": "xxl", "color": "#FFFFFF", "margin": "md"}
         ]
       },
@@ -292,14 +292,14 @@ def generate_card_air(city_name, data):
     }
 
 def generate_card_uv(city_name, data):
-    """卡片4：獨立紫外線卡 (拔除天氣、氣溫、空氣品質！只留 UVI 狀態，炙熱橘主題)"""
+    """卡片4：獨立紫外線卡 (❌已刪除天氣、氣溫、降雨、空氣！只留紫外線)"""
     reminder_text = get_warm_reminder(data, 'uv')
     return {
       "type": "bubble", "size": "mega",
       "header": {
         "type": "box", "layout": "vertical", "backgroundColor": "#e76f51",
         "contents": [
-          {"type": "text", "text": "🕶️ 獨立紫外線監測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
+          {"type": "text", "text": "編號 3 號 🕶️ 獨立紫外線監測", "weight": "bold", "color": "#FFFFFF", "size": "sm"},
           {"type": "text", "text": city_name, "weight": "bold", "size": "xxl", "color": "#FFFFFF", "margin": "md"}
         ]
       },
@@ -341,6 +341,9 @@ def handle_message(event):
     user_input_lower = user_input.lower()
     
     # ─── 第一階段：模糊感應多輪導引問城市 ───
+    if user_input_lower in ["..."]:  # 略過選單固定句以節省版面，邏輯保持一致
+        pass
+        
     if user_input_lower in ["我要查氣象", "呼叫管家！我想看今日氣象圖卡", "查氣象", "綜合氣象"]:
         line_bot_api.reply_message(event.reply_token, TextMessage(text="☀️ 好喔！想要查詢哪一個縣市的『綜合氣象卡片』呢？\n(例如輸入：台中、台北、高雄)"))
         return
@@ -348,7 +351,7 @@ def handle_message(event):
     elif any(k in user_input_lower for k in ["天氣", "氣溫", "溫度", "降雨", "今天天氣如何啊", "幾度"]):
         has_city = any(key in user_input_lower for key in CITY_MAPPING.keys())
         if not has_city:
-            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(example：台中、宜蘭、屏東)"))
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(例如：台中、宜蘭、屏東)"))
             return
             
     elif any(k in user_input_lower for k in ["空氣", "空氣品質", "aqi", "幫我看現在空氣品質好不好", "pm25"]):
@@ -363,14 +366,13 @@ def handle_message(event):
             line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個縣市的『紫外線指數』呢？\n(example：彰化、澎湖、台北)"))
             return
 
-    # ─── 第二階段：解析輸入的字串裡是否有包含台灣縣市關鍵字 ───
+    # ─── 第二階段：解析縣市關鍵字 ───
     target_city_key = None
     for key in CITY_MAPPING.keys():
         if key in user_input_lower:
             target_city_key = key
             break
 
-    # 如果抓到縣市名稱（進行卡片封裝）
     if target_city_key:
         city_info = CITY_MAPPING[target_city_key]
         target_county = city_info["county"]
@@ -381,9 +383,9 @@ def handle_message(event):
             "aqi": "讀取中", "aqi_status": "請稍後", "uvi": "0", "uvi_level": "一般"
         })
         
-        # ─── 精準產出『真正獨立、徹底拔除無關欄位』的 Flex Message 卡片 ───
+        # ─── 真正的獨立路由判斷（這一次把無關資訊完全摘除了！） ───
         
-        # 1. 輸出真正獨立的【空氣卡】
+        # 1. 空氣卡
         if any(k in user_input_lower for k in ["空氣", "aqi", "pm25"]):
             flex_contents = generate_card_air(target_county, city_weather)
             line_bot_api.reply_message(
@@ -391,7 +393,7 @@ def handle_message(event):
                 FlexSendMessage(alt_text=f"{target_county}空氣品質觀測", contents=flex_contents)
             )
             
-        # 2. 輸出真正獨立的【紫外線卡】
+        # 2. 紫外線卡
         elif any(k in user_input_lower for k in ["紫外線", "uv"]):
             flex_contents = generate_card_uv(target_county, city_weather)
             line_bot_api.reply_message(
@@ -399,7 +401,7 @@ def handle_message(event):
                 FlexSendMessage(alt_text=f"{target_county}紫外線監測", contents=flex_contents)
             )
             
-        # 3. 輸出真正獨立的【天氣氣溫卡】
+        # 3. 天氣卡
         elif any(k in user_input_lower for k in ["天氣", "溫度", "氣溫", "幾度", "降雨"]):
             flex_contents = generate_card_weather(target_county, city_weather)
             line_bot_api.reply_message(
@@ -407,7 +409,7 @@ def handle_message(event):
                 FlexSendMessage(alt_text=f"{target_county}天氣氣溫預報", contents=flex_contents)
             )
             
-        # 4. 只打城市名，或指名要看氣象，一律給完整的【綜合氣象大圖卡】
+        # 4. 綜合卡
         else:
             flex_contents = generate_card_all(target_county, city_weather)
             line_bot_api.reply_message(
@@ -416,7 +418,6 @@ def handle_message(event):
             )
             
     else:
-        # 找不到城市時的防呆選單導引
         line_bot_api.reply_message(
             event.reply_token,
             TextMessage(text="呀！小管家看不懂這個指令耶～🤯\n\n"
