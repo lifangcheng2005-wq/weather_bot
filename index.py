@@ -115,7 +115,7 @@ def fetch_all_weather_data():
         
     return integrated_data
 
-# --- 4. 超俏皮生活化貼心提醒 ---
+# --- 4. 終極擴充：地表最有趣、最嘴砲的多樣化動態貼心提醒 ---
 def get_warm_reminder(data, query_type):
     try: pop_val = int(data['pop'])
     except: pop_val = 0
@@ -126,49 +126,69 @@ def get_warm_reminder(data, query_type):
     aqi_status = data['aqi_status']
     reminders = []
     
-    # 🌧️ 天氣提醒
+    # 🌧️ 傲嬌天氣提醒
     if query_type in ['all', 'weather']:
         if pop_val >= 70:
             reminders.append(random.choice([
-                "降雨機率高達百分之裝熟！出門沒帶傘的話，妳就只能在街上跳曼波了啦～☔",
-                "今天降雨機率太有誠意了，出門一定要抓一把傘，別讓自己變成現撈的落湯雞捏！🐔"
+                "降雨機率高達分之裝熟！出門沒帶傘的話，妳就準備在街上跳曼波求雨了吧～☔",
+                "今天降雨機率太有誠意了，出門一定要抓一把傘，別讓自己變成現撈的落湯雞捏！🐔",
+                "偵測到天空今天走『愛哭鬼』路線，降雨機率直接灌頂！沒帶雨具妳就完了，真的！🥺"
             ]))
         elif pop_val >= 40:
-            reminders.append("今天的天空有點愛哭，降雨機率要高不高、要低不低的，折疊傘還是塞進包包吧！🎒")
+            reminders.append(random.choice([
+                "今天的天空有點傲嬌，降雨機率半吊子，折疊傘還是塞進包包吧，防呆用！🎒",
+                "雨神今天可能心情好，降雨機率有一半！賭一把不帶傘？我賭妳會輸，快去拿傘！🔮"
+            ]))
         elif "雨" in data['wx']:
-            reminders.append("外面現在正在下雨！聽話，開車騎車慢一點，不要跟柏油路開玩笑喔～🚗")
+            reminders.append(random.choice([
+                "外面現在正在下雨！聽管話，騎車慢一點，柏油路今天不是很想跟妳貼貼喔～🚗",
+                "嘩啦啦啦～雨滴正在唱歌，路上注意安全，行車距離保持好，平安第一！🌧️"
+            ]))
         else:
             reminders.append(random.choice([
-                "目前看來是個不帶傘也穩過的一天！快出門去踩踩陽光，別發霉啦～☀️",
-                "天氣晴朗小福星！這天氣完美到不出去喝杯奶茶都對不起自己了對吧？🥤"
+                "目前看來是不帶傘也穩過的一天！快出門去踩踩陽光，別在家發霉啦～☀️",
+                "天氣晴朗小福星！這天氣完美到不出去喝杯奶茶都對不起自己的扣達了！🥤",
+                "偵測到晴天 buff 已疊滿！還不快出去玩，要把自己當作馬鈴薯種在沙發上嗎？🥔"
             ]))
 
-    # 😷 空氣提醒
+    # 😷 戲精空氣提醒
     if query_type in ['all', 'air']:
         if "普通" in aqi_status:
-            reminders.append("今天的空氣雖然及格但很邊緣，過敏小可憐們出門記得把口罩戴好，別一直打噴嚏囉！🤧")
+            reminders.append(random.choice([
+                "今天的空氣雖然及格但很邊緣，過敏小可憐們出門記得把口罩戴好，別一直打噴嚏！🤧",
+                "空氣指標正在走鋼索，防禦力有點低。過敏星人如果不想擤衛生紙到鼻子破皮，乖乖戴口罩！🧻"
+            ]))
         elif "對敏感族群不健康" in aqi_status or "不健康" in aqi_status:
             reminders.append(random.choice([
                 "今天窗外空氣有點『有毒』！乖，暫時別去外面瘋狂奔跑，口罩快拉好，保護好妳高貴的肺！⚠️",
-                "空氣品質正在鬧脾氣！過敏星人今天嚴禁開啟人體清淨機模式，沒事多待在室內修仙吧！🔮"
+                "空氣品質正在鬧脾氣！過敏星人今天嚴禁開啟人體清淨機模式，沒事多待在室內修仙吧！🔮",
+                "警報！外面的空氣充滿迷霧，這不是仙境是污染！快把口罩戴上，拒絕當人體吸塵器！👺"
             ]))
         else:
             reminders.append(random.choice([
                 "今天的空氣乾淨到像在清境農場！趕快大力吸三口，免費的奢華空氣不吸白不吸～🍃",
-                "PM2.5 今天集體放假去了！空氣超級無敵好，家裡窗戶快打開通風一波～🪟"
+                "PM2.5 今天集體放假去了！空氣超級無敵好，家裡窗戶快打開通風一波～🪟",
+                "今天的空氣品質是極品！吸一口神清氣爽，吸兩口考試都考一百分啦！💯"
             ]))
 
-    # 🕶️ 紫外線提醒
+    # 🕶️ 浮誇紫外線提醒
     if query_type in ['all', 'uv']:
         if uvi_val >= 8:
             reminders.append(random.choice([
                 "紫外線指數爆表啦！今天太陽公公沒在跟妳客氣的，防曬乳塗厚一點，不然出門一趟直接變黑炭！🔥",
-                "這紫外線是要把人烤熟嗎？防曬、墨鏡、遮陽傘快使出三防防禦，不要跟太陽硬碰硬！🕶️"
+                "這紫外線是要把人烤熟嗎？防曬、墨鏡、遮陽傘快使出三防防禦，不要跟太陽硬碰硬！🕶️",
+                "吸血鬼警告！外面的太陽會把人融化，非必要請勿在陽光下曝曬，妳不想變成行走的烤肉吧？🍖"
             ]))
         elif uvi_val >= 5:
-            reminders.append("紫外線有點微微囂張喔，雖然沒有到融化的程度，但美白很貴的，防曬還是要擦一下啦！🧴")
+            reminders.append(random.choice([
+                "紫外線有點微微囂張喔，雖然沒有到融化的程度，但美白很貴的，防曬還是要擦一下啦！🧴",
+                "陽光普照但帶點小惡意，紫外線指數正在蠢蠢欲動，出門陰影處多走走，別被曬黑了！🐾"
+            ]))
         else:
-            reminders.append("今天的紫外線很善良，頂多幫妳補補維生素D，不用怕被曬成小黑炭，放心出去玩！🐾")
+            reminders.append(random.choice([
+                "今天的紫外線很善良，頂多幫妳補補維生素D，不用怕被曬成黑炭，放心出去玩！☀️",
+                "陽光很溫柔，紫外線今天處於休眠狀態，是個適合在草地上滾來滾去的好日子！🌱"
+            ]))
 
     return " \n".join(reminders)
 
@@ -223,34 +243,49 @@ def callback():
     return 'OK'
 
 
-# --- 7. 核心：自打字與 Rich Menu 選單對齊邏輯 ---
+# --- 7. 核心：自打字/選單雙模模糊感應多輪引擎 ---
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_input = event.message.text.strip()
     user_input_lower = user_input.lower()
     
-    # ─── 第一階段：精準比對妳在 LINE 後台設定的四句選單文字 ───
-    if user_input == "呼叫管家！我想看今日氣象圖卡":
-        line_bot_api.reply_message(event.reply_token, TextMessage(text="☀️ 好喔！想要查詢哪一個縣市的『綜合氣象卡片』呢？\n(例如輸入：台中、台北、花蓮)"))
+    # ─── 第一階段：模糊感應（使用者輸入或點選單，只要包含關鍵字就啟動引導問城市） ───
+    # 1. 綜合氣象比對
+    if user_input_lower in ["我要查氣象", "呼叫管家！我想看今日氣象圖卡", "查氣象", "綜合氣象"]:
+        line_bot_api.reply_message(event.reply_token, TextMessage(text="☀️ 好喔！想要查詢哪一個縣市的『綜合氣象卡片』呢？\n(例如輸入：台中、台北、高雄)"))
         return
-    elif user_input == "今天天氣如何啊":
-        line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(例如輸入：台中、高雄、宜蘭)"))
-        return
-    elif user_input == "幫我看現在空氣品質好不好":
-        line_bot_api.reply_message(event.reply_token, TextMessage(text="🍃 收到！請問妳要看哪一個縣市的『空氣品質AQI』呢？\n(例如輸入：新北、台南、馬祖)"))
-        return
-    elif user_input == "太陽好大！幫我查一下紫外線":
-        line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個縣市的『紫外線指數』呢？\n(例如輸入：彰化、澎湖、台北)"))
-        return
+        
+    # 2. 天氣、溫度、降雨比對
+    elif any(k in user_input_lower for k in ["天氣", "氣溫", "溫度", "降雨", "今天天氣如何啊", "幾度"]):
+        # 關鍵防護：如果使用者是一次打完（例如打「台中天氣」），不可以卡在這邊問城市，要放行到下面去解析！
+        # 所以這裡多加一個防護：如果字串裡「還沒有」包含任何縣市，才詢問城市
+        has_city = any(key in user_input_lower for key in CITY_MAPPING.keys())
+        if not has_city:
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🌡️ 沒問題！請問妳想了解哪一個縣市的『天氣與氣溫』呢？\n(例如輸入：台中、宜蘭、屏東)"))
+            return
+            
+    # 3. 空氣品質比對
+    elif any(k in user_input_lower for k in ["空氣", "空氣品質", "aqi", "幫我看現在空氣品質好不好", "pm25"]):
+        has_city = any(key in user_input_lower for key in CITY_MAPPING.keys())
+        if not has_city:
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🍃 收到！請問妳要看哪一個縣市的『空氣品質AQI』呢？\n(例如輸入：新北、台南、馬祖)"))
+            return
+            
+    # 4. 紫外線比對
+    elif any(k in user_input_lower for k in ["紫外線", "紫外線指數", "uv", "太陽好大！幫我查一下紫外線"]):
+        has_city = any(key in user_input_lower for key in CITY_MAPPING.keys())
+        if not has_city:
+            line_bot_api.reply_message(event.reply_token, TextMessage(text="🕶️ OK！防曬大作戰～請問想查哪一個縣市的『紫外線指數』呢？\n(例如輸入：彰化、澎湖、台北)"))
+            return
 
-    # ─── 第二階段：解析輸入的字串裡是否有包含台灣縣市關鍵字 ───
+    # ─── 第二階段：解析字串有沒有包含台灣縣市關鍵字（22縣市感應） ───
     target_city_key = None
     for key in CITY_MAPPING.keys():
         if key in user_input_lower:
             target_city_key = key
             break
 
-    # 如果抓到縣市名稱（不論是手打一次打完，還是點選單後引導輸入）
+    # 如果抓到縣市名稱（代表要輸出最後答案了）
     if target_city_key:
         city_info = CITY_MAPPING[target_city_key]
         target_county = city_info["county"]
@@ -261,10 +296,10 @@ def handle_message(event):
             "aqi": "讀取中", "aqi_status": "請稍後", "uvi": "0", "uvi_level": "一般"
         })
         
-        # ─── 精準判斷要回傳哪一類型的資料（交叉判定） ───
+        # ─── 交叉分流回應 ───
         
-        # 1. 判定為「空氣品質」
-        if "空氣" in user_input_lower or "aqi" in user_input_lower or "pm25" in user_input_lower:
+        # 1. 輸出空氣
+        if any(k in user_input_lower for k in ["空氣", "aqi", "pm25"]):
             reminder = get_warm_reminder(city_weather, 'air')
             reply_text = f"🍃【{target_county}】空氣品質觀測：\n" \
                          f"🔹 AQI 指標：{city_weather['aqi']}\n" \
@@ -272,8 +307,8 @@ def handle_message(event):
                          f"💡 管家俏皮提醒：\n{reminder}"
             line_bot_api.reply_message(event.reply_token, TextMessage(text=reply_text))
             
-        # 2. 判定為「紫外線」
-        elif "紫外線" in user_input_lower or "uv" in user_input_lower:
+        # 2. 輸出紫外線
+        elif any(k in user_input_lower for k in ["紫外線", "uv"]):
             reminder = get_warm_reminder(city_weather, 'uv')
             reply_text = f"🕶️【{target_county}】紫外線即時監測：\n" \
                          f"🔹 紫外線指數：{city_weather['uvi']}\n" \
@@ -281,8 +316,8 @@ def handle_message(event):
                          f"💡 管家俏皮提醒：\n{reminder}"
             line_bot_api.reply_message(event.reply_token, TextMessage(text=reply_text))
             
-        # 3. 判定為「天氣/溫度/氣溫」
-        elif "天氣" in user_input_lower or "溫度" in user_input_lower or "氣溫" in user_input_lower or "幾度" in user_input_lower:
+        # 3. 輸出天氣/溫度/降雨
+        elif any(k in user_input_lower for k in ["天氣", "溫度", "氣溫", "幾度", "降雨"]):
             reminder = get_warm_reminder(city_weather, 'weather')
             reply_text = f"🌡️【{target_county}】即時天氣與氣溫：\n" \
                          f"🔹 天氣現況：{city_weather['wx']}\n" \
@@ -291,7 +326,7 @@ def handle_message(event):
                          f"💡 管家俏皮提醒：\n{reminder}"
             line_bot_api.reply_message(event.reply_token, TextMessage(text=reply_text))
             
-        # 4. 盲打情境：只打城市（如「台中」）或是打了包含「氣象」的字
+        # 4. 只打城市名，直接給 Flex Message 綜合卡片
         else:
             flex_contents = generate_flex_message(target_county, city_weather)
             line_bot_api.reply_message(
@@ -300,15 +335,15 @@ def handle_message(event):
             )
             
     else:
-        # 當使用者打的字完全不包含任何台灣縣市時
+        # 當使用者亂打字或打了一句沒縣市的話時
         line_bot_api.reply_message(
             event.reply_token,
             TextMessage(text="呀！小管家看不懂這個指令耶～🤯\n\n"
                              "請直接點選下方【LINE選單】，或是試著這樣對我打字喔：\n"
                              "👉「台中」 (看綜合圖卡)\n"
-                             "👉「台中天氣」 (查氣溫與降雨)\n"
-                             "👉「台中空氣」 (查AQI品質)\n"
-                             "👉「台中紫外線」 (查防曬指標)")
+                             "👉「台中天氣」 (看氣溫與降雨)\n"
+                             "👉「台中空氣」 (看AQI品質)\n"
+                             "👉「台中紫外線」 (看防曬指標)")
         )
 
 app.debug = False
