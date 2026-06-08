@@ -117,7 +117,7 @@ def fetch_all_weather_data():
         
     return integrated_data
 
-# --- 4. 生成 LINE Flex Message UI (JSON 驅動格式) ---
+# --- 4. 生成 LINE Flex Message 綜合圖卡 ---
 def generate_flex_message(city_name, data):
     return {
       "type": "bubble",
@@ -184,13 +184,21 @@ def callback():
         abort(400)
     return 'OK'
 
+# --- 6. 核心訊息處理判斷（精準分流對話邏輯） ---
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    user_input = event.message.text.strip()
+    user_input = event.message.text.strip().lower()
     
-    # 檢查輸入是否在全台 22 縣市對照表內
-    if user_input in CITY_MAPPING:
-        city_info = CITY_MAPPING[user_input]
+    # 尋找輸入字串中是否包含 22 縣市的關鍵字
+    target_city_key = None
+    for key in CITY_MAPPING.keys():
+        if key in user_input:
+            target_city_key = key
+            break
+
+    # 如果有比對到縣市關鍵字
+    if target_city_key:
+        city_info = CITY_MAPPING[target_city_key]
         target_county = city_info["county"]
         
         # 撈取並整合政府 JSON 資料
@@ -202,18 +210,36 @@ def handle_message(event):
             "aqi": "讀取中", "aqi_status": "請稍後", "uvi": "0", "uvi_level": "一般"
         })
         
-        # 渲染 Flex Message
-        flex_contents = generate_flex_message(target_county, city_weather)
+        # --- 分流判斷開始 ---
         
-        line_bot_api.reply_message(
-            event.reply_token,
-            FlexSendMessage(alt_text=f"{target_county}天氣預報", contents=flex_contents)
-        )
+        # 1. 分開詢問：空氣品質
+        if "空氣" in user_input or "aqi" in user_input or "pm25" in user_input:
+            reply_text = f"🍃【{target_county}】空氣品質指標：\n🔹 AQI 指標：{city_weather['aqi']}\n🔹 狀態說明：{city_weather['aqi_status']}"
+            line_bot_api.reply_message(event.reply_token, TextMessage(text=reply_text))
+            
+        # 2. 分開詢問：紫外線
+        elif "紫外線" in user_input or "uv" in user_input:
+            reply_text = f"🕶️【{target_county}】紫外線即時監測：\n🔹 紫外線指數：{city_weather['uvi']}\n🔹 風險級別：{city_weather['uvi_level']}"
+            line_bot_api.reply_message(event.reply_token, TextMessage(text=reply_text))
+            
+        # 3. 分開詢問：溫度 / 氣溫
+        elif "溫度" in user_input or "氣溫" in user_input or "幾度" in user_input or "熱" in user_input or "冷" in user_input:
+            reply_text = f"🌡️【{target_county}】即時氣溫情報：\n🔹 目前天氣：{city_weather['wx']}\n🔹 預測氣溫：{city_weather['min_t']}°C ~ {city_weather['max_t']}°C\n🔹 降雨機率：{city_weather['pop']}%"
+            line_bot_api.reply_message(event.reply_token, TextMessage(text=reply_text))
+            
+        # 4. 綜合查詢：使用者沒加指定項目，直接給最漂亮的綜合版 Flex Message
+        else:
+            flex_contents = generate_flex_message(target_county, city_weather)
+            line_bot_api.reply_message(
+                event.reply_token,
+                FlexSendMessage(alt_text=f"{target_county}綜合氣象情報", contents=flex_contents)
+            )
+            
     else:
-        # 友善導引提示
+        # 當找不到城市關鍵字時的貼心引導提示
         line_bot_api.reply_message(
             event.reply_token,
-            TextMessage(text="請輸入台灣任意縣市名稱（例如：台中、高雄、花蓮、澎湖），氣象小管家馬上幫妳查！")
+            TextMessage(text="請輸入【城市 + 查詢項目】。\n\n例如：\n👉「台中天氣」(看綜合圖卡)\n👉 nudge「台中溫度」(單獨查氣溫)\n👉「台中空氣」(單獨查AQI)\n👉「台北紫外線」(單獨查抗陽指標)")
         )
 
 app.debug = False
