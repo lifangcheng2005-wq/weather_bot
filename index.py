@@ -53,7 +53,7 @@ def handle_message(event):
 
 
 # =====================================================================
-# 2. Dialogflow Fulfillment 接收端點 (修正版)
+# 2. Dialogflow Fulfillment 接收端點 (終極通車修正版)
 # =====================================================================
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -63,13 +63,11 @@ def webhook():
     action = req["queryResult"]["action"]
     user_query_text = req["queryResult"]["queryText"]
     
-    # 當 Dialogflow 觸發氣象查詢（對應我們剛剛填的 queryWeather）
+    # 當 Dialogflow 觸發氣象查詢
     if action in ["queryWeather", "input.unknown"]:
-        # 嘗試直接從 Dialogflow 解析好的參數拿城市名稱，拿不到再交給 Gemini 猜
         try:
             geo_city = req["queryResult"]["parameters"].get("geo-city", "")
             if geo_city:
-                # 如果有抓到城市（例如：臺中），直接在問題前面加上提示，讓大腦更精準
                 user_query_text = f"我要查詢 {geo_city}。原句：{user_query_text}"
         except:
             pass
@@ -78,7 +76,20 @@ def webhook():
     else:
         info = "抱歉，此功能尚未設定對應的 Action。"
 
-    return make_response(jsonify({"fulfillmentText": info}))
+    # 🌟 關鍵修正：確保包成符合 Dialogflow 標準的 JSON 格式物件
+    response_data = {
+        "fulfillmentText": info,
+        "fulfillmentMessages": [
+            {
+                "text": {
+                    "text": [info]
+                }
+            }
+        ]
+    }
+
+    # 回傳 JSON 並明確指定 Content-Type
+    return jsonify(response_data)
 
 
 # =====================================================================
